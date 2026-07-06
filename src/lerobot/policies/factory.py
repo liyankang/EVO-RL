@@ -406,6 +406,14 @@ def make_pre_post_processors(
             dataset_stats=kwargs.get("dataset_stats"),
         )
 
+    elif policy_cfg.type == "mlpvalue":
+        from lerobot.values.mlpvalue.processor_mlpvalue import make_mlpvalue_pre_post_processors
+
+        processors = make_mlpvalue_pre_post_processors(
+            config=policy_cfg,
+            dataset_stats=kwargs.get("dataset_stats"),
+        )
+
     else:
         try:
             processors = _make_processors_from_policy_config(
