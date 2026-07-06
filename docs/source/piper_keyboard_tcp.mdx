@@ -1,0 +1,351 @@
+# Piper — 键盘 TCP 遥操作
+
+用键盘直接控制 Piper 机械臂末端执行器（TCP）的位姿，无需额外主臂硬件。
+
+**本指南包含：**
+
+- CAN 接口配置与 Piper 连接
+- 标定从臂（`piper_follower`）
+- 键盘映射与步长调节
+- 遥操作、采集数据集、回放
+- IK 接入方式说明
+
+---
+
+## 依赖安装
+
+```bash
+pip install -e ".[piper]"
+```
+
+> [!NOTE]
+> 键盘监听依赖 `pynput`。Linux 下需要 `DISPLAY` 环境变量；无图形环境时键盘事件不可用。
+
+---
+
+## 硬件准备
+
+### 1. 确认 CAN 接口
+
+Piper 通过 CAN 总线通信。将 USB-CAN 适配器接入计算机后，确认接口名称：
+
+```bash
+ip link show
+```
+
+常见接口名为 `can0`（单臂）。双臂场景下从臂和主臂分别接在不同接口，此处键盘遥操作只需连接**从臂**。
+
+### 2. 初始化 CAN 接口
+
+```bash
+sudo ip link set can0 type can bitrate 1000000
+sudo ip link set can0 up
+```
+
+如需开机自动配置，可写入 `/etc/network/interfaces` 或使用 `systemd-networkd`。
+
+---
+
+## 标定从臂
+
+首次使用或更换机械臂后需要标定，以建立电机原始值与角度之间的映射。
+
+### 命令行方式
+
+```bash
+lerobot-calibrate \
+    --robot.type=piper_follower \
+    --robot.port=can0 \
+    --robot.id=piper_right
+```
+
+### API 方式
+
+```python
+from lerobot.robots.piper_follower import PiperFollower, PiperFollowerConfig
+
+config = PiperFollowerConfig(
+    port="can0",
+    id="piper_right",
+)
+robot = PiperFollower(config)
+robot.connect(calibrate=False)
+robot.calibrate()
+robot.disconnect()
+```
+
+标定流程：
+
+1. 将机械臂移动到期望的**中立位**，按 `Enter` 记录归零点。
+2. 将所有关节**依次**拨动到极限位置，按 `Enter` 停止记录。
+3. 标定文件自动保存到 `~/.cache/huggingface/lerobot/calibration/robots/piper_follower/<id>.json`。
+
+---
+
+## 遥操作
+
+### 键盘映射
+
+| 按键 | 效果 |
+|------|------|
+| `W` / `S` | TCP x 轴 +/− |
+| `A` / `D` | TCP y 轴 +/− |
+| `Q` / `E` | TCP z 轴 +/− |
+| `I` / `K` | pitch +/− |
+| `J` / `L` | yaw +/− |
+| `U` / `O` | roll +/− |
+| `Z` | 夹爪张开 |
+| `X` | 夹爪闭合 |
+| `+` / `=` | 步长 × 1.5 |
+| `-` | 步长 ÷ 1.5 |
+| `ESC` | 断开连接 |
+
+> [!TIP]
+> 初始步长：平移 5 mm / 次，旋转 1° / 次，夹爪 5° / 次。用 `+`/`-` 动态调整，适应精细操作与大范围移动两种场景。
+
+### 命令行启动
+
+```bash
+lerobot-teleoperate \
+    --robot.type=piper_follower \
+    --robot.port=can0 \
+    --robot.id=piper_right \
+    --teleop.type=keyboard_piper_tcp \
+    --teleop.id=kb \
+    --display_data=true
+```
+
+自定义初始 TCP 位姿与步长：
+
+```bash
+lerobot-teleoperate \
+    --robot.type=piper_follower \
+    --robot.port=can0 \
+    --robot.id=piper_right \
+    --teleop.type=keyboard_piper_tcp \
+    --teleop.id=kb \
+    --teleop.init_tcp_pose="[0.3, 0.0, 0.25, 0.0, 0.0, 0.0]" \
+    --teleop.pos_step=0.003 \
+    --teleop.rot_step=0.5
+```
+
+### API 方式
+
+```python
+from lerobot.robots.piper_follower import PiperFollower, PiperFollowerConfig
+from lerobot.teleoperators.keyboard import KeyboardPiperTCPTeleop, KeyboardPiperTCPTeleopConfig
+
+robot_cfg = PiperFollowerConfig(port="can0", id="piper_right")
+teleop_cfg = KeyboardPiperTCPTeleopConfig(
+    id="kb",
+    init_tcp_pose=(0.3, 0.0, 0.25, 0.0, 0.0, 0.0),
+    pos_step=0.005,
+    rot_step=1.0,
+    gripper_step=5.0,
+)
+
+robot = PiperFollower(robot_cfg)
+teleop = KeyboardPiperTCPTeleop(teleop_cfg)
+
+teleop.connect()
+robot.connect()
+
+try:
+    while True:
+        action = teleop.get_action()   # TCP → joint（IK stub，补充后生效）
+        robot.send_action(action)
+except KeyboardInterrupt:
+    pass
+finally:
+    teleop.disconnect()
+    robot.disconnect()
+```
+
+---
+
+## 采集数据集
+
+```bash
+lerobot-record \
+    --robot.type=piper_follower \
+    --robot.port=can0 \
+    --robot.id=piper_right \
+    --robot.cameras="{ front: {type: opencv, index_or_path: 0, width: 640, height: 480, fps: 30}}" \
+    --teleop.type=keyboard_piper_tcp \
+    --teleop.id=kb \
+    --dataset.repo_id=<your_hf_id>/piper_keyboard_demo \
+    --dataset.num_episodes=20 \
+    --dataset.single_task="pick up the red cube"
+```
+
+---
+
+## 回放数据集
+
+```bash
+lerobot-replay \
+    --robot.type=piper_follower \
+    --robot.port=can0 \
+    --robot.id=piper_right \
+    --dataset.repo_id=<your_hf_id>/piper_keyboard_demo \
+    --dataset.episode=0
+```
+
+---
+
+## IK 接入说明
+
+IK 已完整实现，基于 [placo](https://github.com/Rhoban/placo)（Pinocchio 的 Python 封装）。
+
+相关文件：
+
+| 文件 | 作用 |
+|------|------|
+| `src/lerobot/model/kinematics.py` | `RobotKinematics`：FK / IK 通用接口 |
+| `src/lerobot/robots/so_follower/robot_kinematic_processor.py` | `InverseKinematicsEEToJoints` 等 Processor Steps |
+| `src/lerobot/robots/piper_follower/robot_kinematic_processor.py` | Piper 专用：`make_piper_kinematics()`，含 URDF/frame 映射 |
+
+**架构说明**：`KeyboardPiperTCPTeleop.get_action()` 直接输出 EE 位姿（`ee.x/y/z/wx/wy/wz + ee.gripper_pos`），IK 在 `robot_action_processor` pipeline 中完成，与 phone teleop 完全一致。
+
+### 依赖安装
+
+```bash
+pip install -e ".[kinematics]"
+```
+
+### API 接入示例
+
+```python
+from lerobot.robots.piper_follower import PiperFollower, PiperFollowerConfig
+from lerobot.robots.piper_follower.robot_kinematic_processor import (
+    make_piper_kinematics,
+    PIPER_SDK_MOTOR_NAMES,
+)
+from lerobot.robots.so_follower.robot_kinematic_processor import (
+    EEBoundsAndSafety,
+    InverseKinematicsEEToJoints,
+)
+from lerobot.teleoperators.keyboard import KeyboardPiperTCPTeleop, KeyboardPiperTCPTeleopConfig
+from lerobot.processor import RobotProcessorPipeline
+from lerobot.processor.converters import robot_action_observation_to_transition, transition_to_robot_action
+from lerobot.processor.pipeline import IdentityProcessorStep
+from lerobot.processor.factory import make_default_robot_observation_processor
+from lerobot.scripts.lerobot_teleoperate import teleop_loop
+
+# 1. 构建 Piper IK 求解器
+kinematics = make_piper_kinematics()
+
+# 2. robot_action_processor：EE 位姿 → 关节角
+robot_action_processor = RobotProcessorPipeline(
+    steps=[
+        EEBoundsAndSafety(
+            end_effector_bounds={"min": [-0.6, -0.6, 0.0], "max": [0.6, 0.6, 0.8]},
+            max_ee_step_m=0.05,
+        ),
+        InverseKinematicsEEToJoints(
+            kinematics=kinematics,
+            motor_names=PIPER_SDK_MOTOR_NAMES + ["gripper"],
+            initial_guess_current_joints=True,
+        ),
+    ],
+    to_transition=robot_action_observation_to_transition,
+    to_output=transition_to_robot_action,
+)
+
+# 3. teleop_action_processor 保持 Identity
+teleop_action_processor = RobotProcessorPipeline(
+    steps=[IdentityProcessorStep()],
+    to_transition=robot_action_observation_to_transition,
+    to_output=transition_to_robot_action,
+)
+
+# 4. 启动
+robot_cfg = PiperFollowerConfig(port="can0", id="piper_right")
+teleop_cfg = KeyboardPiperTCPTeleopConfig(
+    id="kb",
+    init_tcp_pose=(0.3, 0.0, 0.25, 0.0, 0.0, 0.0),
+)
+robot = PiperFollower(robot_cfg)
+teleop = KeyboardPiperTCPTeleop(teleop_cfg)
+teleop.connect()
+robot.connect()
+
+try:
+    teleop_loop(
+        teleop=teleop,
+        robot=robot,
+        fps=60,
+        teleop_action_processor=teleop_action_processor,
+        robot_action_processor=robot_action_processor,
+        robot_observation_processor=make_default_robot_observation_processor(),
+        display_data=True,
+    )
+except KeyboardInterrupt:
+    pass
+finally:
+    teleop.disconnect()
+    robot.disconnect()
+```
+
+### URDF 与关节名映射
+
+```
+URDF frame   : base_link → link1 → link2 → ... → link6  （末端：link6）
+URDF joint   : joint1 ~ joint6
+piper_sdk key: joint_1.pos ~ joint_6.pos
+```
+
+URDF 路径（包内置）：
+
+```
+src/lerobot/assets/piper_description/urdf/piper_no_gripper_description.urdf
+src/lerobot/assets/piper_x_description/urdf/piper_x_description_no_gripper.urdf
+```
+
+---
+
+## 配置参数速查
+
+| 参数 | 默认值 | 说明 |
+|------|--------|------|
+| `init_tcp_pose` | `(0,0,0,0,0,0)` | 初始 TCP 位姿 `[x,y,z,roll,pitch,yaw]`，单位 m / ° |
+| `init_gripper_pos` | `0.0` | 初始夹爪开度（度） |
+| `pos_step` | `0.005` | 每次按键平移步长（米） |
+| `rot_step` | `1.0` | 每次按键旋转步长（度） |
+| `gripper_step` | `5.0` | 每次按键夹爪步长（度） |
+| `step_scale` | `1.5` | `+`/`-` 键缩放倍数 |
+
+从臂相关参数参见 `PiperFollowerConfig`，完整字段说明见 `config_piper_follower.py`。
+
+---
+
+## 常见问题
+
+**CAN 接口找不到**
+
+```bash
+# 检查接口是否 UP
+ip link show can0
+# 若 DOWN，重新初始化
+sudo ip link set can0 type can bitrate 1000000
+sudo ip link set can0 up
+```
+
+**标定文件不存在，连接报错**
+
+```
+RuntimeError: No piper-follower calibration file found
+```
+
+按照上方「标定从臂」步骤执行一次标定，或在配置中设置 `require_calibration=False` 跳过（不推荐用于训练采集）。
+
+**夹爪不动**
+
+确认配置中 `sync_gripper=True`（默认已开启），并检查夹爪 CAN ID 是否与 SDK 期望一致。
+
+**键盘无响应（Linux 无头环境）**
+
+`pynput` 在无 `DISPLAY` 的 Linux 终端下会被自动禁用。设置 `DISPLAY=:0` 或使用 SSH 带 `-X` 转发。
+
+> [!TIP]
+> 如有问题请在 [Discord](https://discord.com/invite/s3KuuzsPFb) 反馈。

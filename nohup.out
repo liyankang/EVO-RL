@@ -1,0 +1,664 @@
+WARNING:lerobot.configs.policies:Device 'None' is not available. Switching to 'cuda'.
+INFO 2026-06-25 18:46:44 lue_train.py:99 {'batch_size': 16,
+ 'checkpoint_path': None,
+ 'dataset': {'episodes': None,
+             'image_transforms': {'enable': False,
+                                  'max_num_transforms': 3,
+                                  'random_order': False,
+                                  'tfs': {'affine': {'kwargs': {'degrees': [-5.0,
+                                                                            5.0],
+                                                                'translate': [0.05,
+                                                                              0.05]},
+                                                     'type': 'RandomAffine',
+                                                     'weight': 1.0},
+                                          'brightness': {'kwargs': {'brightness': [0.8,
+                                                                                   1.2]},
+                                                         'type': 'ColorJitter',
+                                                         'weight': 1.0},
+                                          'contrast': {'kwargs': {'contrast': [0.8,
+                                                                               1.2]},
+                                                       'type': 'ColorJitter',
+                                                       'weight': 1.0},
+                                          'hue': {'kwargs': {'hue': [-0.05,
+                                                                     0.05]},
+                                                  'type': 'ColorJitter',
+                                                  'weight': 1.0},
+                                          'saturation': {'kwargs': {'saturation': [0.5,
+                                                                                   1.5]},
+                                                         'type': 'ColorJitter',
+                                                         'weight': 1.0},
+                                          'sharpness': {'kwargs': {'sharpness': [0.5,
+                                                                                 1.5]},
+                                                        'type': 'SharpnessJitter',
+                                                        'weight': 1.0}}},
+             'repo_id': 'local/push_button',
+             'revision': None,
+             'root': '/home/user/.cache/huggingface/lerobot/lerobot_v3/data_toiletButton_0609',
+             'streaming': False,
+             'use_imagenet_stats': False,
+             'video_backend': 'torchcodec'},
+ 'env': None,
+ 'job_name': 'push_button_value',
+ 'log_freq': 200,
+ 'num_workers': 4,
+ 'optimizer': {'betas': [0.9, 0.999],
+               'eps': 1e-08,
+               'grad_clip_norm': 10.0,
+               'lr': 5e-05,
+               'type': 'adamw',
+               'weight_decay': 1e-05},
+ 'output_dir': '/home/user/huggingface/evo',
+ 'peft': None,
+ 'rename_map': {},
+ 'resume': False,
+ 'save_checkpoint': True,
+ 'save_freq': 4000,
+ 'scheduler': {'decay_lr': 1e-06,
+               'num_decay_steps': 8000,
+               'num_warmup_steps': 500,
+               'peak_lr': 5e-05,
+               'type': 'cosine_decay_with_warmup'},
+ 'seed': 1000,
+ 'steps': 8000,
+ 'targets': {'c_fail_coef': 1.0,
+             'default_success': 'failure',
+             'success_field': 'episode_success',
+             'target_field': 'observation.value_target'},
+ 'tolerance_s': 0.0001,
+ 'use_policy_training_preset': True,
+ 'use_value_training_preset': True,
+ 'value': {'bin_max': 0.0,
+           'bin_min': -1.0,
+           'camera_features': [],
+           'device': 'cuda',
+           'dropout': 0.1,
+           'dtype': 'bfloat16',
+           'freeze_language_model': False,
+           'freeze_vision_encoder': False,
+           'fusion_hidden_dim': 512,
+           'fusion_num_heads': 8,
+           'fusion_num_layers': 2,
+           'include_state_in_prompt': True,
+           'input_features': {},
+           'language_repo_id': '/home/user/huggingface/gemma-3-270m',
+           'language_revision': None,
+           'license': None,
+           'loss_weight_key': 'observation.value_loss_weight',
+           'max_state_dim': 32,
+           'n_obs_steps': 1,
+           'normalization_mapping': {'ACTION': <NormalizationMode.IDENTITY: 'IDENTITY'>,
+                                     'STATE': <NormalizationMode.QUANTILES: 'QUANTILES'>,
+                                     'VISUAL': <NormalizationMode.IDENTITY: 'IDENTITY'>},
+           'num_bins': 201,
+           'optimizer_grad_clip_norm': 10.0,
+           'optimizer_lr': 5e-05,
+           'optimizer_weight_decay': 1e-05,
+           'output_features': {},
+           'pretrained_path': None,
+           'private': None,
+           'push_to_hub': False,
+           'repo_id': None,
+           'scheduler_decay_lr': 1e-06,
+           'scheduler_decay_steps': 8000,
+           'scheduler_warmup_steps': 500,
+           'state_discretization_bins': 256,
+           'state_feature': 'observation.state',
+           'state_proj_dim': 512,
+           'tags': None,
+           'target_key': 'observation.value_target',
+           'task_field': 'task',
+           'task_index_feature': 'task_index',
+           'tokenizer_max_length': 200,
+           'type': 'pistar06',
+           'use_amp': False,
+           'use_gradient_checkpointing': False,
+           'use_peft': False,
+           'vision_repo_id': '/home/user/huggingface/siglip-so400m-patch14-384',
+           'vision_revision': None},
+ 'wandb': {'disable_artifact': False,
+           'enable': False,
+           'entity': None,
+           'mode': None,
+           'notes': None,
+           'project': 'lerobot',
+           'run_id': None}}
+INFO 2026-06-25 18:46:44 ue_train.py:103 Logs will be saved locally.
+INFO 2026-06-25 18:46:44 ue_train.py:113 Creating dataset
+INFO 2026-06-25 18:46:44 ue_train.py:122 Creating value model
+INFO 2026-06-25 18:46:47 ue_train.py:136 Using value model raw-batch hook for target construction.
+INFO 2026-06-25 18:46:48 ue_train.py:175 Creating optimizer and scheduler
+INFO 2026-06-25 18:46:48 ue_train.py:188 Output dir: /home/user/huggingface/evo
+INFO 2026-06-25 18:46:48 ue_train.py:189 cfg.steps=8000 (8K)
+INFO 2026-06-25 18:46:48 ue_train.py:190 dataset.num_frames=16036 (16K)
+INFO 2026-06-25 18:46:48 ue_train.py:191 dataset.num_episodes=60
+INFO 2026-06-25 18:46:48 ue_train.py:194 Effective batch size: 16 x 1 = 16
+INFO 2026-06-25 18:46:48 ue_train.py:195 num_learnable_params=1147607163 (1B)
+INFO 2026-06-25 18:46:48 ue_train.py:196 num_total_params=1147607163 (1B)
+INFO 2026-06-25 18:46:48 ue_train.py:236 Start value training on a fixed dataset, with effective batch size: 16
+INFO 2026-06-25 18:46:50 ue_train.py:258 First value prompt:
+Task: press the toilet button, State: -1 89 180 102 192 255 106 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128
+Value: 
+[W625 18:46:51.563153743 CUDACachingAllocator.cpp:3933] memory allocation failed with OOM on device 0 while trying to allocate 54525952 bytes (free: 45809664, total: 50754289664).
+[W625 18:46:51.563323637 CUDACachingAllocator.cpp:3933] memory allocation failed with OOM on device 0 while trying to allocate 54525952 bytes (free: 45809664, total: 50754289664).
+Traceback (most recent call last):
+  File "/home/user/miniforge3/envs/evo/bin/lerobot-value-train", line 6, in <module>
+    sys.exit(main())
+  File "/home/user/code_1/evo_rl/src/lerobot/scripts/lerobot_value_train.py", line 324, in main
+    value_train()
+  File "/home/user/code_1/evo_rl/src/lerobot/configs/parser.py", line 233, in wrapper_inner
+    response = fn(cfg, *args, **kwargs)
+  File "/home/user/code_1/evo_rl/src/lerobot/scripts/lerobot_value_train.py", line 263, in value_train
+    train_tracker, output_dict = update_policy(
+  File "/home/user/code_1/evo_rl/src/lerobot/scripts/lerobot_value_train.py", line 48, in update_policy
+    loss, output_dict = policy.forward(batch)
+  File "/home/user/code_1/evo_rl/src/lerobot/values/pistar06/modeling_pistar06.py", line 741, in forward
+    logits = self.model(
+  File "/home/user/miniforge3/envs/evo/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1778, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/home/user/miniforge3/envs/evo/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1789, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/user/code_1/evo_rl/src/lerobot/values/pistar06/modeling_pistar06.py", line 434, in forward
+    image_features = self._encode_images(flat_images)
+  File "/home/user/code_1/evo_rl/src/lerobot/values/pistar06/modeling_pistar06.py", line 326, in _encode_images
+    return self.vision_encoder.get_image_features(pixel_values=flat_images)
+  File "/home/user/miniforge3/envs/evo/lib/python3.10/site-packages/transformers/models/siglip/modeling_siglip.py", line 1001, in get_image_features
+    vision_outputs: BaseModelOutputWithPooling = self.vision_model(
+  File "/home/user/miniforge3/envs/evo/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1778, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/home/user/miniforge3/envs/evo/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1789, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/user/miniforge3/envs/evo/lib/python3.10/site-packages/transformers/utils/generic.py", line 943, in wrapper
+    output = func(self, *args, **kwargs)
+  File "/home/user/miniforge3/envs/evo/lib/python3.10/site-packages/transformers/models/siglip/modeling_siglip.py", line 780, in forward
+    encoder_outputs: BaseModelOutput = self.encoder(
+  File "/home/user/miniforge3/envs/evo/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1778, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/home/user/miniforge3/envs/evo/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1789, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/user/miniforge3/envs/evo/lib/python3.10/site-packages/transformers/utils/generic.py", line 943, in wrapper
+    output = func(self, *args, **kwargs)
+  File "/home/user/miniforge3/envs/evo/lib/python3.10/site-packages/transformers/models/siglip/modeling_siglip.py", line 608, in forward
+    layer_outputs = encoder_layer(
+  File "/home/user/miniforge3/envs/evo/lib/python3.10/site-packages/transformers/modeling_layers.py", line 83, in __call__
+    return super().__call__(*args, **kwargs)
+  File "/home/user/miniforge3/envs/evo/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1778, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/home/user/miniforge3/envs/evo/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1789, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/user/miniforge3/envs/evo/lib/python3.10/site-packages/transformers/models/siglip/modeling_siglip.py", line 463, in forward
+    hidden_states, attn_weights = self.self_attn(
+  File "/home/user/miniforge3/envs/evo/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1778, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/home/user/miniforge3/envs/evo/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1789, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/user/miniforge3/envs/evo/lib/python3.10/site-packages/transformers/models/siglip/modeling_siglip.py", line 399, in forward
+    attn_output, attn_weights = attention_interface(
+  File "/home/user/miniforge3/envs/evo/lib/python3.10/site-packages/transformers/integrations/sdpa_attention.py", line 75, in sdpa_attention_forward
+    attn_output = attn_output.transpose(1, 2).contiguous()
+torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 52.00 MiB. GPU 0 has a total capacity of 47.27 GiB of which 43.69 MiB is free. Process 582577 has 32.88 GiB memory in use. Including non-PyTorch memory, this process has 14.31 GiB memory in use. Of the allocated memory 13.79 GiB is allocated by PyTorch, and 44.87 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://docs.pytorch.org/docs/stable/notes/cuda.html#optimizing-memory-usage-with-pytorch-cuda-alloc-conf)
+WARNING:lerobot.configs.policies:Device 'None' is not available. Switching to 'cuda'.
+INFO 2026-06-25 18:51:53 lue_train.py:99 {'batch_size': 16,
+ 'checkpoint_path': None,
+ 'dataset': {'episodes': None,
+             'image_transforms': {'enable': False,
+                                  'max_num_transforms': 3,
+                                  'random_order': False,
+                                  'tfs': {'affine': {'kwargs': {'degrees': [-5.0,
+                                                                            5.0],
+                                                                'translate': [0.05,
+                                                                              0.05]},
+                                                     'type': 'RandomAffine',
+                                                     'weight': 1.0},
+                                          'brightness': {'kwargs': {'brightness': [0.8,
+                                                                                   1.2]},
+                                                         'type': 'ColorJitter',
+                                                         'weight': 1.0},
+                                          'contrast': {'kwargs': {'contrast': [0.8,
+                                                                               1.2]},
+                                                       'type': 'ColorJitter',
+                                                       'weight': 1.0},
+                                          'hue': {'kwargs': {'hue': [-0.05,
+                                                                     0.05]},
+                                                  'type': 'ColorJitter',
+                                                  'weight': 1.0},
+                                          'saturation': {'kwargs': {'saturation': [0.5,
+                                                                                   1.5]},
+                                                         'type': 'ColorJitter',
+                                                         'weight': 1.0},
+                                          'sharpness': {'kwargs': {'sharpness': [0.5,
+                                                                                 1.5]},
+                                                        'type': 'SharpnessJitter',
+                                                        'weight': 1.0}}},
+             'repo_id': 'local/push_button',
+             'revision': None,
+             'root': '/home/user/.cache/huggingface/lerobot/lerobot_v3/data_toiletButton_0609',
+             'streaming': False,
+             'use_imagenet_stats': False,
+             'video_backend': 'torchcodec'},
+ 'env': None,
+ 'job_name': 'push_button_value',
+ 'log_freq': 200,
+ 'num_workers': 4,
+ 'optimizer': {'betas': [0.9, 0.999],
+               'eps': 1e-08,
+               'grad_clip_norm': 10.0,
+               'lr': 5e-05,
+               'type': 'adamw',
+               'weight_decay': 1e-05},
+ 'output_dir': '/home/user/huggingface/evo',
+ 'peft': None,
+ 'rename_map': {},
+ 'resume': False,
+ 'save_checkpoint': True,
+ 'save_freq': 4000,
+ 'scheduler': {'decay_lr': 1e-06,
+               'num_decay_steps': 8000,
+               'num_warmup_steps': 500,
+               'peak_lr': 5e-05,
+               'type': 'cosine_decay_with_warmup'},
+ 'seed': 1000,
+ 'steps': 8000,
+ 'targets': {'c_fail_coef': 1.0,
+             'default_success': 'failure',
+             'success_field': 'episode_success',
+             'target_field': 'observation.value_target'},
+ 'tolerance_s': 0.0001,
+ 'use_policy_training_preset': True,
+ 'use_value_training_preset': True,
+ 'value': {'bin_max': 0.0,
+           'bin_min': -1.0,
+           'camera_features': [],
+           'device': 'cuda',
+           'dropout': 0.1,
+           'dtype': 'bfloat16',
+           'freeze_language_model': False,
+           'freeze_vision_encoder': False,
+           'fusion_hidden_dim': 512,
+           'fusion_num_heads': 8,
+           'fusion_num_layers': 2,
+           'include_state_in_prompt': True,
+           'input_features': {},
+           'language_repo_id': '/home/user/huggingface/gemma-3-270m',
+           'language_revision': None,
+           'license': None,
+           'loss_weight_key': 'observation.value_loss_weight',
+           'max_state_dim': 32,
+           'n_obs_steps': 1,
+           'normalization_mapping': {'ACTION': <NormalizationMode.IDENTITY: 'IDENTITY'>,
+                                     'STATE': <NormalizationMode.QUANTILES: 'QUANTILES'>,
+                                     'VISUAL': <NormalizationMode.IDENTITY: 'IDENTITY'>},
+           'num_bins': 201,
+           'optimizer_grad_clip_norm': 10.0,
+           'optimizer_lr': 5e-05,
+           'optimizer_weight_decay': 1e-05,
+           'output_features': {},
+           'pretrained_path': None,
+           'private': None,
+           'push_to_hub': False,
+           'repo_id': None,
+           'scheduler_decay_lr': 1e-06,
+           'scheduler_decay_steps': 8000,
+           'scheduler_warmup_steps': 500,
+           'state_discretization_bins': 256,
+           'state_feature': 'observation.state',
+           'state_proj_dim': 512,
+           'tags': None,
+           'target_key': 'observation.value_target',
+           'task_field': 'task',
+           'task_index_feature': 'task_index',
+           'tokenizer_max_length': 200,
+           'type': 'pistar06',
+           'use_amp': False,
+           'use_gradient_checkpointing': False,
+           'use_peft': False,
+           'vision_repo_id': '/home/user/huggingface/siglip-so400m-patch14-384',
+           'vision_revision': None},
+ 'wandb': {'disable_artifact': False,
+           'enable': False,
+           'entity': None,
+           'mode': None,
+           'notes': None,
+           'project': 'lerobot',
+           'run_id': None}}
+INFO 2026-06-25 18:51:53 ue_train.py:103 Logs will be saved locally.
+INFO 2026-06-25 18:51:53 ue_train.py:113 Creating dataset
+INFO 2026-06-25 18:51:54 ue_train.py:122 Creating value model
+INFO 2026-06-25 18:51:56 ue_train.py:136 Using value model raw-batch hook for target construction.
+INFO 2026-06-25 18:51:57 ue_train.py:175 Creating optimizer and scheduler
+INFO 2026-06-25 18:51:57 ue_train.py:188 Output dir: /home/user/huggingface/evo
+INFO 2026-06-25 18:51:57 ue_train.py:189 cfg.steps=8000 (8K)
+INFO 2026-06-25 18:51:57 ue_train.py:190 dataset.num_frames=16036 (16K)
+INFO 2026-06-25 18:51:57 ue_train.py:191 dataset.num_episodes=60
+INFO 2026-06-25 18:51:57 ue_train.py:194 Effective batch size: 16 x 1 = 16
+INFO 2026-06-25 18:51:57 ue_train.py:195 num_learnable_params=1147607163 (1B)
+INFO 2026-06-25 18:51:57 ue_train.py:196 num_total_params=1147607163 (1B)
+INFO 2026-06-25 18:51:57 ue_train.py:236 Start value training on a fixed dataset, with effective batch size: 16
+INFO 2026-06-25 18:51:59 ue_train.py:258 First value prompt:
+Task: press the toilet button, State: -1 89 180 102 192 255 106 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128
+Value: 
+INFO 2026-06-25 18:54:33 ue_train.py:279 step:200 smpl:3K ep:12 epch:0.20 loss:4.855 grdn:14.714 lr:1.0e-05 updt_s:0.745 data_s:0.032
+INFO 2026-06-25 18:57:06 ue_train.py:279 step:400 smpl:6K ep:24 epch:0.40 loss:3.906 grdn:13.116 lr:3.0e-05 updt_s:0.744 data_s:0.022
+INFO 2026-06-25 18:59:39 ue_train.py:279 step:600 smpl:10K ep:36 epch:0.60 loss:3.673 grdn:9.414 lr:4.7e-05 updt_s:0.742 data_s:0.022
+INFO 2026-06-25 19:02:13 ue_train.py:279 step:800 smpl:13K ep:48 epch:0.80 loss:3.536 grdn:8.239 lr:4.9e-05 updt_s:0.743 data_s:0.022
+INFO 2026-06-25 19:04:46 ue_train.py:279 step:1K smpl:16K ep:60 epch:1.00 loss:3.477 grdn:8.498 lr:4.8e-05 updt_s:0.741 data_s:0.022
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+	- Avoid using `tokenizers` before the fork if possible
+	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+	- Avoid using `tokenizers` before the fork if possible
+	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+	- Avoid using `tokenizers` before the fork if possible
+	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+	- Avoid using `tokenizers` before the fork if possible
+	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+INFO 2026-06-25 19:07:20 ue_train.py:279 step:1K smpl:19K ep:72 epch:1.20 loss:3.392 grdn:8.759 lr:4.8e-05 updt_s:0.742 data_s:0.029
+INFO 2026-06-25 19:09:54 ue_train.py:279 step:1K smpl:22K ep:84 epch:1.40 loss:3.265 grdn:9.159 lr:4.7e-05 updt_s:0.744 data_s:0.022
+INFO 2026-06-25 19:12:28 ue_train.py:279 step:2K smpl:26K ep:96 epch:1.60 loss:3.120 grdn:9.681 lr:4.6e-05 updt_s:0.744 data_s:0.022
+INFO 2026-06-25 19:15:01 ue_train.py:279 step:2K smpl:29K ep:108 epch:1.80 loss:3.017 grdn:10.846 lr:4.5e-05 updt_s:0.745 data_s:0.022
+INFO 2026-06-25 19:17:35 ue_train.py:279 step:2K smpl:32K ep:120 epch:2.00 loss:2.875 grdn:10.864 lr:4.3e-05 updt_s:0.743 data_s:0.022
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+	- Avoid using `tokenizers` before the fork if possible
+	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+	- Avoid using `tokenizers` before the fork if possible
+	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+	- Avoid using `tokenizers` before the fork if possible
+	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+	- Avoid using `tokenizers` before the fork if possible
+	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+INFO 2026-06-25 19:20:08 ue_train.py:279 step:2K smpl:35K ep:132 epch:2.20 loss:2.656 grdn:12.210 lr:4.2e-05 updt_s:0.738 data_s:0.029
+INFO 2026-06-25 19:22:42 ue_train.py:279 step:2K smpl:38K ep:144 epch:2.39 loss:2.586 grdn:13.485 lr:4.1e-05 updt_s:0.743 data_s:0.022
+INFO 2026-06-25 19:25:15 ue_train.py:279 step:3K smpl:42K ep:156 epch:2.59 loss:2.442 grdn:13.910 lr:3.9e-05 updt_s:0.744 data_s:0.022
+INFO 2026-06-25 19:27:49 ue_train.py:279 step:3K smpl:45K ep:168 epch:2.79 loss:2.333 grdn:14.453 lr:3.7e-05 updt_s:0.744 data_s:0.022
+INFO 2026-06-25 19:30:23 ue_train.py:279 step:3K smpl:48K ep:180 epch:2.99 loss:2.236 grdn:15.552 lr:3.6e-05 updt_s:0.744 data_s:0.022
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+	- Avoid using `tokenizers` before the fork if possible
+	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+	- Avoid using `tokenizers` before the fork if possible
+	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+	- Avoid using `tokenizers` before the fork if possible
+	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+	- Avoid using `tokenizers` before the fork if possible
+	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+INFO 2026-06-25 19:32:57 ue_train.py:279 step:3K smpl:51K ep:192 epch:3.19 loss:1.976 grdn:14.896 lr:3.4e-05 updt_s:0.740 data_s:0.029
+INFO 2026-06-25 19:35:31 ue_train.py:279 step:3K smpl:54K ep:204 epch:3.39 loss:1.923 grdn:16.670 lr:3.2e-05 updt_s:0.747 data_s:0.022
+INFO 2026-06-25 19:38:05 ue_train.py:279 step:4K smpl:58K ep:216 epch:3.59 loss:1.827 grdn:17.341 lr:3.0e-05 updt_s:0.746 data_s:0.022
+INFO 2026-06-25 19:40:38 ue_train.py:279 step:4K smpl:61K ep:227 epch:3.79 loss:1.774 grdn:18.745 lr:2.8e-05 updt_s:0.746 data_s:0.022
+INFO 2026-06-25 19:43:12 ue_train.py:279 step:4K smpl:64K ep:239 epch:3.99 loss:1.688 grdn:19.976 lr:2.6e-05 updt_s:0.746 data_s:0.022
+INFO 2026-06-25 19:43:12 ue_train.py:289 Checkpoint value model after step 4000
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+	- Avoid using `tokenizers` before the fork if possible
+	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+	- Avoid using `tokenizers` before the fork if possible
+	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+	- Avoid using `tokenizers` before the fork if possible
+	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+	- Avoid using `tokenizers` before the fork if possible
+	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+INFO 2026-06-25 19:45:56 ue_train.py:279 step:4K smpl:67K ep:251 epch:4.19 loss:1.463 grdn:16.708 lr:2.5e-05 updt_s:0.741 data_s:0.030
+INFO 2026-06-25 19:48:30 ue_train.py:279 step:4K smpl:70K ep:263 epch:4.39 loss:1.418 grdn:18.148 lr:2.3e-05 updt_s:0.747 data_s:0.022
+INFO 2026-06-25 19:51:04 ue_train.py:279 step:5K smpl:74K ep:275 epch:4.59 loss:1.365 grdn:19.757 lr:2.1e-05 updt_s:0.745 data_s:0.022
+INFO 2026-06-25 19:53:37 ue_train.py:279 step:5K smpl:77K ep:287 epch:4.79 loss:1.337 grdn:19.957 lr:1.9e-05 updt_s:0.744 data_s:0.022
+INFO 2026-06-25 19:56:11 ue_train.py:279 step:5K smpl:80K ep:299 epch:4.99 loss:1.298 grdn:21.530 lr:1.7e-05 updt_s:0.744 data_s:0.022
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+	- Avoid using `tokenizers` before the fork if possible
+	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+	- Avoid using `tokenizers` before the fork if possible
+	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+	- Avoid using `tokenizers` before the fork if possible
+	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+	- Avoid using `tokenizers` before the fork if possible
+	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+INFO 2026-06-25 19:58:45 ue_train.py:279 step:5K smpl:83K ep:311 epch:5.19 loss:1.174 grdn:18.123 lr:1.5e-05 updt_s:0.741 data_s:0.029
+INFO 2026-06-25 20:01:19 ue_train.py:279 step:5K smpl:86K ep:323 epch:5.39 loss:1.136 grdn:18.677 lr:1.4e-05 updt_s:0.746 data_s:0.022
+INFO 2026-06-25 20:03:53 ue_train.py:279 step:6K smpl:90K ep:335 epch:5.59 loss:1.115 grdn:19.232 lr:1.2e-05 updt_s:0.745 data_s:0.022
+INFO 2026-06-25 20:06:27 ue_train.py:279 step:6K smpl:93K ep:347 epch:5.79 loss:1.117 grdn:20.280 lr:1.0e-05 updt_s:0.745 data_s:0.022
+INFO 2026-06-25 20:09:00 ue_train.py:279 step:6K smpl:96K ep:359 epch:5.99 loss:1.081 grdn:19.423 lr:8.9e-06 updt_s:0.745 data_s:0.022
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+	- Avoid using `tokenizers` before the fork if possible
+	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+	- Avoid using `tokenizers` before the fork if possible
+	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+	- Avoid using `tokenizers` before the fork if possible
+	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+	- Avoid using `tokenizers` before the fork if possible
+	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+INFO 2026-06-25 20:11:34 ue_train.py:279 step:6K smpl:99K ep:371 epch:6.19 loss:1.029 grdn:18.159 lr:7.5e-06 updt_s:0.740 data_s:0.029
+INFO 2026-06-25 20:14:08 ue_train.py:279 step:6K smpl:102K ep:383 epch:6.39 loss:1.004 grdn:18.300 lr:6.3e-06 updt_s:0.744 data_s:0.022
+INFO 2026-06-25 20:16:41 ue_train.py:279 step:7K smpl:106K ep:395 epch:6.59 loss:1.029 grdn:19.150 lr:5.1e-06 updt_s:0.744 data_s:0.022
+INFO 2026-06-25 20:19:15 ue_train.py:279 step:7K smpl:109K ep:407 epch:6.78 loss:1.030 grdn:19.372 lr:4.1e-06 updt_s:0.745 data_s:0.022
+INFO 2026-06-25 20:21:49 ue_train.py:279 step:7K smpl:112K ep:419 epch:6.98 loss:1.021 grdn:19.282 lr:3.3e-06 updt_s:0.745 data_s:0.022
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+	- Avoid using `tokenizers` before the fork if possible
+	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+	- Avoid using `tokenizers` before the fork if possible
+	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+	- Avoid using `tokenizers` before the fork if possible
+	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+	- Avoid using `tokenizers` before the fork if possible
+	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+INFO 2026-06-25 20:24:23 ue_train.py:279 step:7K smpl:115K ep:431 epch:7.18 loss:0.997 grdn:19.195 lr:2.5e-06 updt_s:0.740 data_s:0.029
+INFO 2026-06-25 20:26:56 ue_train.py:279 step:7K smpl:118K ep:443 epch:7.38 loss:0.993 grdn:18.452 lr:1.9e-06 updt_s:0.744 data_s:0.022
+INFO 2026-06-25 20:29:30 ue_train.py:279 step:8K smpl:122K ep:455 epch:7.58 loss:0.980 grdn:18.791 lr:1.5e-06 updt_s:0.743 data_s:0.022
+INFO 2026-06-25 20:32:03 ue_train.py:279 step:8K smpl:125K ep:467 epch:7.78 loss:1.003 grdn:18.803 lr:1.2e-06 updt_s:0.744 data_s:0.022
+INFO 2026-06-25 20:34:37 ue_train.py:279 step:8K smpl:128K ep:479 epch:7.98 loss:0.999 grdn:19.324 lr:1.0e-06 updt_s:0.745 data_s:0.022
+INFO 2026-06-25 20:34:37 ue_train.py:289 Checkpoint value model after step 8000
+INFO 2026-06-25 20:34:47 ue_train.py:308 End of value training
+WARNING:lerobot.configs.policies:Device 'None' is not available. Switching to 'cuda'.
+INFO 2026-06-26 10:27:53 lue_train.py:99 {'batch_size': 16,
+ 'checkpoint_path': None,
+ 'dataset': {'episodes': None,
+             'image_transforms': {'enable': False,
+                                  'max_num_transforms': 3,
+                                  'random_order': False,
+                                  'tfs': {'affine': {'kwargs': {'degrees': [-5.0,
+                                                                            5.0],
+                                                                'translate': [0.05,
+                                                                              0.05]},
+                                                     'type': 'RandomAffine',
+                                                     'weight': 1.0},
+                                          'brightness': {'kwargs': {'brightness': [0.8,
+                                                                                   1.2]},
+                                                         'type': 'ColorJitter',
+                                                         'weight': 1.0},
+                                          'contrast': {'kwargs': {'contrast': [0.8,
+                                                                               1.2]},
+                                                       'type': 'ColorJitter',
+                                                       'weight': 1.0},
+                                          'hue': {'kwargs': {'hue': [-0.05,
+                                                                     0.05]},
+                                                  'type': 'ColorJitter',
+                                                  'weight': 1.0},
+                                          'saturation': {'kwargs': {'saturation': [0.5,
+                                                                                   1.5]},
+                                                         'type': 'ColorJitter',
+                                                         'weight': 1.0},
+                                          'sharpness': {'kwargs': {'sharpness': [0.5,
+                                                                                 1.5]},
+                                                        'type': 'SharpnessJitter',
+                                                        'weight': 1.0}}},
+             'repo_id': 'local/push_button',
+             'revision': None,
+             'root': '/home/user/.cache/huggingface/lerobot/lerobot_v3/data_toiletButton_0609',
+             'streaming': False,
+             'use_imagenet_stats': False,
+             'video_backend': 'torchcodec'},
+ 'env': None,
+ 'job_name': 'push_button_value',
+ 'log_freq': 200,
+ 'num_workers': 4,
+ 'optimizer': {'betas': [0.9, 0.999],
+               'eps': 1e-08,
+               'grad_clip_norm': 10.0,
+               'lr': 5e-05,
+               'type': 'adamw',
+               'weight_decay': 1e-05},
+ 'output_dir': '/home/user/huggingface/evo',
+ 'peft': None,
+ 'rename_map': {},
+ 'resume': False,
+ 'save_checkpoint': True,
+ 'save_freq': 4000,
+ 'scheduler': {'decay_lr': 1e-06,
+               'num_decay_steps': 8000,
+               'num_warmup_steps': 500,
+               'peak_lr': 5e-05,
+               'type': 'cosine_decay_with_warmup'},
+ 'seed': 1000,
+ 'steps': 8000,
+ 'targets': {'c_fail_coef': 1.0,
+             'default_success': 'failure',
+             'success_field': 'episode_success',
+             'target_field': 'observation.value_target'},
+ 'tolerance_s': 0.0001,
+ 'use_policy_training_preset': True,
+ 'use_value_training_preset': True,
+ 'value': {'bin_max': 0.0,
+           'bin_min': -1.0,
+           'camera_features': [],
+           'device': 'cuda',
+           'dropout': 0.1,
+           'dtype': 'bfloat16',
+           'freeze_language_model': False,
+           'freeze_vision_encoder': False,
+           'fusion_hidden_dim': 512,
+           'fusion_num_heads': 8,
+           'fusion_num_layers': 2,
+           'include_state_in_prompt': True,
+           'input_features': {},
+           'language_repo_id': '/home/user/huggingface/gemma-3-270m',
+           'language_revision': None,
+           'license': None,
+           'loss_weight_key': 'observation.value_loss_weight',
+           'max_state_dim': 32,
+           'n_obs_steps': 1,
+           'normalization_mapping': {'ACTION': <NormalizationMode.IDENTITY: 'IDENTITY'>,
+                                     'STATE': <NormalizationMode.QUANTILES: 'QUANTILES'>,
+                                     'VISUAL': <NormalizationMode.IDENTITY: 'IDENTITY'>},
+           'num_bins': 201,
+           'optimizer_grad_clip_norm': 10.0,
+           'optimizer_lr': 5e-05,
+           'optimizer_weight_decay': 1e-05,
+           'output_features': {},
+           'pretrained_path': None,
+           'private': None,
+           'push_to_hub': False,
+           'repo_id': None,
+           'scheduler_decay_lr': 1e-06,
+           'scheduler_decay_steps': 8000,
+           'scheduler_warmup_steps': 500,
+           'state_discretization_bins': 256,
+           'state_feature': 'observation.state',
+           'state_proj_dim': 512,
+           'tags': None,
+           'target_key': 'observation.value_target',
+           'task_field': 'task',
+           'task_index_feature': 'task_index',
+           'tokenizer_max_length': 200,
+           'type': 'pistar06',
+           'use_amp': False,
+           'use_gradient_checkpointing': False,
+           'use_peft': False,
+           'vision_repo_id': '/home/user/huggingface/siglip-so400m-patch14-384',
+           'vision_revision': None},
+ 'wandb': {'disable_artifact': False,
+           'enable': False,
+           'entity': None,
+           'mode': None,
+           'notes': None,
+           'project': 'lerobot',
+           'run_id': None}}
+INFO 2026-06-26 10:27:53 ue_train.py:103 Logs will be saved locally.
+INFO 2026-06-26 10:27:53 ue_train.py:113 Creating dataset
+INFO 2026-06-26 10:27:53 ue_train.py:122 Creating value model
+INFO 2026-06-26 10:27:56 ue_train.py:136 Using value model raw-batch hook for target construction.
+INFO 2026-06-26 10:27:57 ue_train.py:175 Creating optimizer and scheduler
+INFO 2026-06-26 10:27:57 ue_train.py:188 Output dir: /home/user/huggingface/evo
+INFO 2026-06-26 10:27:57 ue_train.py:189 cfg.steps=8000 (8K)
+INFO 2026-06-26 10:27:57 ue_train.py:190 dataset.num_frames=16036 (16K)
+INFO 2026-06-26 10:27:57 ue_train.py:191 dataset.num_episodes=60
+INFO 2026-06-26 10:27:57 ue_train.py:194 Effective batch size: 16 x 1 = 16
+INFO 2026-06-26 10:27:57 ue_train.py:195 num_learnable_params=1147607163 (1B)
+INFO 2026-06-26 10:27:57 ue_train.py:196 num_total_params=1147607163 (1B)
+INFO 2026-06-26 10:27:57 ue_train.py:236 Start value training on a fixed dataset, with effective batch size: 16
+INFO 2026-06-26 10:27:59 ue_train.py:258 First value prompt:
+Task: press the toilet button, State: -1 89 180 102 192 255 106 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128
+Value: 
+Traceback (most recent call last):
+  File "/home/user/miniforge3/envs/evo/bin/lerobot-value-train", line 6, in <module>
+    sys.exit(main())
+  File "/home/user/code_1/evo_rl/src/lerobot/scripts/lerobot_value_train.py", line 324, in main
+    value_train()
+  File "/home/user/code_1/evo_rl/src/lerobot/configs/parser.py", line 233, in wrapper_inner
+    response = fn(cfg, *args, **kwargs)
+  File "/home/user/code_1/evo_rl/src/lerobot/scripts/lerobot_value_train.py", line 263, in value_train
+    train_tracker, output_dict = update_policy(
+  File "/home/user/code_1/evo_rl/src/lerobot/scripts/lerobot_value_train.py", line 50, in update_policy
+    accelerator.backward(loss)
+  File "/home/user/miniforge3/envs/evo/lib/python3.10/site-packages/accelerate/accelerator.py", line 2838, in backward
+    loss.backward(**kwargs)
+  File "/home/user/miniforge3/envs/evo/lib/python3.10/site-packages/torch/_tensor.py", line 623, in backward
+    torch.autograd.backward(
+  File "/home/user/miniforge3/envs/evo/lib/python3.10/site-packages/torch/autograd/__init__.py", line 395, in backward
+    _engine_run_backward(
+  File "/home/user/miniforge3/envs/evo/lib/python3.10/site-packages/torch/autograd/graph.py", line 979, in _engine_run_backward
+    return Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
+KeyboardInterrupt
+Exception ignored in atexit callback: <function _exit_function at 0x7fee50c22170>
+Traceback (most recent call last):
+  File "/home/user/miniforge3/envs/evo/lib/python3.10/multiprocessing/util.py", line 357, in _exit_function
+    p.join()
+  File "/home/user/miniforge3/envs/evo/lib/python3.10/multiprocessing/process.py", line 149, in join
+    res = self._popen.wait(timeout)
+  File "/home/user/miniforge3/envs/evo/lib/python3.10/multiprocessing/popen_fork.py", line 43, in wait
+    return self.poll(os.WNOHANG if timeout == 0.0 else 0)
+  File "/home/user/miniforge3/envs/evo/lib/python3.10/multiprocessing/popen_fork.py", line 27, in poll
+    pid, sts = os.waitpid(self.pid, flag)
+KeyboardInterrupt: 
