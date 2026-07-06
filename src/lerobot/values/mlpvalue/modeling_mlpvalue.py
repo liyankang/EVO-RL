@@ -42,12 +42,18 @@ class MlpValuePolicy(PreTrainedPolicy):
     config_class = MlpValueConfig
     name = "mlpvalue"
 
-    def __init__(self, config: MlpValueConfig, dataset_stats: dict | None = None):
-        super().__init__(config, dataset_stats)
+    def __init__(self, config: MlpValueConfig, dataset_meta=None, **kwargs):
+        super().__init__(config)
         self.config = config
 
-        # 推断 state_dim（从 dataset_stats 或 input_features）
-        state_dim = self._infer_state_dim(dataset_stats)
+        # 从 dataset_meta 或 dataset_stats（兼容两种调用方式）推断 state_dim
+        dataset_stats = kwargs.pop("dataset_stats", None)
+        if dataset_meta is not None and hasattr(dataset_meta, "stats"):
+            stats = dataset_meta.stats
+        else:
+            stats = dataset_stats
+
+        state_dim = self._infer_state_dim(stats, dataset_meta)
         self.model = MlpValueNetwork(
             state_dim=state_dim,
             hidden_dims=list(config.hidden_dims),
@@ -55,19 +61,25 @@ class MlpValuePolicy(PreTrainedPolicy):
             dropout=config.dropout,
         )
 
-        # 分布式 value head 的 bin centers
         bin_centers = torch.linspace(config.bin_min, config.bin_max, config.num_bins)
         self.register_buffer("bin_centers", bin_centers)
 
-    def _infer_state_dim(self, dataset_stats: dict | None) -> int:
-        # 优先从 input_features 拿
+    def _infer_state_dim(self, dataset_stats: dict | None, dataset_meta=None) -> int:
+        # 优先从 input_features 拿（保存的 config 里有）
         if self.config.input_features:
             feat = self.config.input_features.get(self.config.state_feature)
             if feat is not None:
                 shape = feat.get("shape", None)
                 if shape:
                     return int(np.prod(shape))
-        # 其次从 dataset_stats 拿
+        # 从 dataset_meta.features 拿
+        if dataset_meta is not None and hasattr(dataset_meta, "features"):
+            feat = dataset_meta.features.get(self.config.state_feature)
+            if feat is not None:
+                shape = feat.get("shape", None)
+                if shape:
+                    return int(np.prod(shape))
+        # 从 stats 拿
         if dataset_stats and self.config.state_feature in dataset_stats:
             mean = dataset_stats[self.config.state_feature].get("mean")
             if mean is not None:
@@ -76,7 +88,7 @@ class MlpValuePolicy(PreTrainedPolicy):
                 return len(mean)
         raise ValueError(
             f"Cannot infer state_dim for '{self.config.state_feature}'. "
-            "Pass dataset_stats or set input_features."
+            "Pass dataset_meta or dataset_stats."
         )
 
     def get_optim_params(self):
