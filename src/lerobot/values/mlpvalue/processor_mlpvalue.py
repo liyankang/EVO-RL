@@ -6,6 +6,7 @@ import torch
 
 from lerobot.processor import (
     DeviceProcessorStep,
+    ImageCropResizeProcessorStep,
     PolicyAction,
     PolicyProcessorPipeline,
     RenameObservationsProcessorStep,
@@ -22,6 +23,13 @@ def make_mlpvalue_pre_post_processors(
     PolicyProcessorPipeline[dict[str, Any], dict[str, Any]],
     PolicyProcessorPipeline[PolicyAction, PolicyAction],
 ]:
+    camera_features = list(config.camera_features)
+    if not camera_features:
+        camera_features = [
+            k for k in (config.input_features or {})
+            if k.startswith("observation.images")
+        ]
+
     input_steps: list[ProcessorStep] = [
         RenameObservationsProcessorStep(rename_map={}),
         NormalizerProcessorStep(
@@ -30,8 +38,17 @@ def make_mlpvalue_pre_post_processors(
             stats=dataset_stats,
             normalize_observation_keys={config.state_feature},
         ),
-        DeviceProcessorStep(device=config.device),
     ]
+
+    if camera_features:
+        input_steps.append(
+            ImageCropResizeProcessorStep(
+                image_keys=camera_features,
+                output_size=(224, 224),
+            )
+        )
+
+    input_steps.append(DeviceProcessorStep(device=config.device))
 
     output_steps: list[ProcessorStep] = [
         DeviceProcessorStep(device="cpu"),
