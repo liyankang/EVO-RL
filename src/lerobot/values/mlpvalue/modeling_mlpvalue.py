@@ -65,30 +65,34 @@ class MlpValuePolicy(PreTrainedPolicy):
         self.register_buffer("bin_centers", bin_centers)
 
     def _infer_state_dim(self, dataset_stats: dict | None, dataset_meta=None) -> int:
-        # 优先从 input_features 拿（保存的 config 里有）
+        key = self.config.state_feature
+
+        # 优先从 input_features 拿（PolicyFeature 或 dict 都兼容）
         if self.config.input_features:
-            feat = self.config.input_features.get(self.config.state_feature)
+            feat = self.config.input_features.get(key)
             if feat is not None:
-                shape = feat.get("shape", None)
-                if shape:
+                shape = feat.shape if hasattr(feat, "shape") else feat.get("shape", None)
+                if shape is not None:
                     return int(np.prod(shape))
+
         # 从 dataset_meta.features 拿
         if dataset_meta is not None and hasattr(dataset_meta, "features"):
-            feat = dataset_meta.features.get(self.config.state_feature)
+            feat = dataset_meta.features.get(key)
             if feat is not None:
-                shape = feat.get("shape", None)
-                if shape:
+                shape = feat.shape if hasattr(feat, "shape") else feat.get("shape", None)
+                if shape is not None:
                     return int(np.prod(shape))
+
         # 从 stats 拿
-        if dataset_stats and self.config.state_feature in dataset_stats:
-            mean = dataset_stats[self.config.state_feature].get("mean")
+        if dataset_stats and key in dataset_stats:
+            mean = dataset_stats[key].get("mean")
             if mean is not None:
                 if isinstance(mean, Tensor):
                     return int(mean.numel())
                 return len(mean)
+
         raise ValueError(
-            f"Cannot infer state_dim for '{self.config.state_feature}'. "
-            "Pass dataset_meta or dataset_stats."
+            f"Cannot infer state_dim for '{key}'. Pass dataset_meta or dataset_stats."
         )
 
     def get_optim_params(self):
