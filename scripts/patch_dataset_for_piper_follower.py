@@ -37,7 +37,7 @@ NEW_JOINT_NAMES = [
     "gripper.pos",
 ]
 OLD_DIM = 10
-NEW_DIM = 7
+NEW_DIM = 7  # 默认值，可通过命令行 --new-dim 覆盖
 
 
 # ── 1. Patch info.json ──────────────────────────────────────────────────────
@@ -225,7 +225,24 @@ def main():
                         default="ask",
                         help="episode_success 标注值。success/failure 直接写入；"
                              "ask（默认）在终端交互确认。")
+    parser.add_argument("--new-dim", type=int, default=7,
+                        help="新的 action/observation.state 维度（默认：7）")
     args = parser.parse_args()
+
+    # 更新全局变量
+    global NEW_DIM, NEW_JOINT_NAMES
+    NEW_DIM = args.new_dim
+
+    # 根据 NEW_DIM 动态调整 joint names
+    if NEW_DIM == 7:
+        NEW_JOINT_NAMES = [
+            "joint_1.pos", "joint_2.pos", "joint_3.pos",
+            "joint_4.pos", "joint_5.pos", "joint_6.pos",
+            "gripper.pos",
+        ]
+    else:
+        # 如果不是7维，生成通用名称
+        NEW_JOINT_NAMES = [f"joint_{i}.pos" for i in range(1, NEW_DIM + 1)]
 
     root = Path(args.root)
     if not root.is_dir():
@@ -234,6 +251,8 @@ def main():
 
     print(f"Dataset root: {root}")
     print(f"Dry run: {args.dry_run}")
+    print(f"New dimension: {NEW_DIM}")
+    print(f"New joint names: {NEW_JOINT_NAMES}")
     print()
 
     patch_info_json(root, args.dry_run)

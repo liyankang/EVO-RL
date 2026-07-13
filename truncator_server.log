@@ -1,0 +1,7 @@
+nohup: ignoring input
+2026-07-13 14:50:42,604 - INFO - 启动视频轨迹截断工具服务器: http://127.0.0.1:5000
+ * Serving Flask app 'video_truncator_server'
+ * Debug mode: off
+2026-07-13 14:50:42,606 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2026-07-13 14:50:42,606 - INFO - [33mPress CTRL+C to quit[0m

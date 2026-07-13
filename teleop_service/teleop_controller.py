@@ -58,6 +58,10 @@ class TeleopController:
         self.secondary_device_id = None  # 副设备：只能控制底盘
         self.enabled_counts = {}
         
+        # 设备稳定时间跟踪（防止初始传感器抖动）
+        self.device_ready_frames = {}    # 记录设备激活帧数
+        self.STARTUP_DELAY_FRAMES = 30   # 启动延迟帧数（约1秒@30Hz）
+        
         # 底盘当前位姿
         self.base_pose = None
         
@@ -101,6 +105,12 @@ class TeleopController:
         
         # Use device ID to disambiguate between primary and secondary devices
         device_id = data['device_id']
+        
+        # 稳定期计数：从第一个包含位姿数据的消息开始（提前开始稳定）
+        if 'position' in data and 'orientation' in data:
+            if device_id not in self.device_ready_frames:
+                self.device_ready_frames[device_id] = 0
+            self.device_ready_frames[device_id] += 1
         
         # Update enabled count for the device that sent this message
         self.enabled_counts[device_id] = (
@@ -150,14 +160,18 @@ class TeleopController:
             
             # Arm movement
             elif data['teleop_mode'] == 'arm':
-                # Store reference poses
-                if self.arm_xr_ref_pos is None:
+                # Store reference poses - 只有在设备稳定后才记录参考位姿
+                if self.arm_xr_ref_pos is None and self.device_ready_frames[device_id] > self.STARTUP_DELAY_FRAMES:
                     self.arm_xr_ref_pos = pos
                     self.arm_xr_ref_rot_inv = rot.inv()
                     self.arm_ref_pos = self.arm_target_pos.copy()
                     self.arm_ref_rot = self.arm_target_rot
                     self.arm_ref_base_pose = self.base_pose.copy()
                     self.gripper_ref_pos = self.gripper_target_pos
+                    
+                    # 输出稳定期完成信息
+                    import sys
+                    print(f'[TeleopController] 设备 {device_id[:8]} 稳定期完成 ({self.device_ready_frames[device_id]} 帧)', file=sys.stderr)
                 
                 # Rotations around z-axis to go between global frame (base) and local frame (arm)
                 z_rot = R.from_rotvec(np.array([0.0, 0.0, 1.0]) * self.base_pose[2])
@@ -260,5 +274,39 @@ class TeleopController:
         return action
     
     def reset(self):
-        """重置控制器状态"""
-        self.__init__()
+        """重置控制器状态（保留设备稳定期计数）"""
+        import sys
+        saved_ready_frames = self.device_ready_frames.copy()
+        
+        # 重新初始化基本状态
+        self.primary_device_id = None
+        self.secondary_device_id = None
+        self.enabled_counts = {}
+        
+        # 清空参考位姿
+        self.base_xr_ref_pos = None
+        self.base_xr_ref_rot_inv = None
+        self.arm_xr_ref_pos = None
+        self.arm_xr_ref_rot_inv = None
+        self.base_ref_pose = None
+        self.arm_ref_pos = None
+        self.arm_ref_rot = None
+        self.arm_ref_base_pose = None
+        self.gripper_ref_pos = None
+        
+        # 重置目标位姿
+        self.targets_initialized = False
+        self.base_target_pose = None
+        self.arm_target_pos = None
+        self.arm_target_rot = None
+        self.gripper_target_pos = None
+        self.arm_command_pos = None
+        self.arm_command_rot = None
+        self.gripper_command_pos = None
+        self.base_pose = None
+        
+        # 恢复稳定期计数
+        self.device_ready_frames = saved_ready_frames
+        
+        if saved_ready_frames:
+            print(f'[TeleopController] 已重置，保留稳定期计数: {saved_ready_frames}', file=sys.stderr)

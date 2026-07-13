@@ -7,6 +7,7 @@
 #       --v2-root  /home/user/.cache/huggingface/lerobot/lerobot_v3/data_toiletButton_0703_f \
 #       --v3-root  /media/Data/huggingface/lerobot/lerobot_v3/data_toiletButton_0703_f \
 #       --episode-success success     # 可选，不传则交互确认
+#       --new-dim 7                   # 可选，action/observation.state 维度（默认：7）
 #
 # 依赖:
 #   conda activate lerobot312
@@ -20,6 +21,7 @@ REPO_ID=""
 V2_ROOT=""
 V3_ROOT=""
 EPISODE_SUCCESS=""  # 空=交互确认
+NEW_DIM=7           # 默认 7 维
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -27,13 +29,14 @@ while [[ $# -gt 0 ]]; do
         --v2-root)          V2_ROOT="$2";           shift 2 ;;
         --v3-root)          V3_ROOT="$2";           shift 2 ;;
         --episode-success)  EPISODE_SUCCESS="$2";   shift 2 ;;
+        --new-dim)          NEW_DIM="$2";           shift 2 ;;
         *) echo "未知参数: $1"; exit 1 ;;
     esac
 done
 
 # 参数检查
 if [[ -z "$REPO_ID" || -z "$V2_ROOT" || -z "$V3_ROOT" ]]; then
-    echo "用法: $0 --repo-id <id> --v2-root <path> --v3-root <path> [--episode-success success|failure]"
+    echo "用法: $0 --repo-id <id> --v2-root <path> --v3-root <path> [--episode-success success|failure] [--new-dim <dim>]"
     exit 1
 fi
 
@@ -46,6 +49,7 @@ echo "  repo-id:          $REPO_ID"
 echo "  v2 原始路径:      $V2_ROOT"
 echo "  v3 输出路径:      $V3_ROOT"
 echo "  episode-success:  ${EPISODE_SUCCESS:-（交互确认）}"
+echo "  new-dim:          $NEW_DIM"
 echo "========================================"
 echo ""
 
@@ -86,12 +90,14 @@ if [[ -n "$EPISODE_SUCCESS" ]]; then
     # 命令行已指定，直接传入
     python scripts/patch_dataset_for_piper_follower.py \
         --root "$V3_ROOT" \
-        --episode-success "$EPISODE_SUCCESS"
+        --episode-success "$EPISODE_SUCCESS" \
+        --new-dim "$NEW_DIM"
 else
     # 交互确认（ask 模式，脚本内部会提示用户输入）
     python scripts/patch_dataset_for_piper_follower.py \
         --root "$V3_ROOT" \
-        --episode-success ask
+        --episode-success ask \
+        --new-dim "$NEW_DIM"
 fi
 echo "  ✓ patch 完成"
 echo ""

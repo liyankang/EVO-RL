@@ -12,7 +12,7 @@ from datetime import datetime
 
 import pandas as pd
 
-ROOT = "/media/Data/huggingface/lerobot/lerobot_v3/data_toiletButton_0701_f"
+ROOT = "/media/Data/huggingface/lerobot/lerobot_v3/data_toiletButton_0703"
 DATA_DIR = f"{ROOT}/data/chunk-000"
 VIDEO_DIR = f"{ROOT}/videos/chunk-000"
 META_DIR = f"{ROOT}/meta"

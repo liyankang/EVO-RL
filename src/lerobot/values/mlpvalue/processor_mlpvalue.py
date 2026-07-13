@@ -42,10 +42,7 @@ def make_mlpvalue_pre_post_processors(
 
     if camera_features:
         input_steps.append(
-            ImageCropResizeProcessorStep(
-                image_keys=camera_features,
-                output_size=(224, 224),
-            )
+            ImageCropResizeProcessorStep(resize_size=(224, 224))
         )
 
     input_steps.append(DeviceProcessorStep(device=config.device))
