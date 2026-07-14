@@ -102,12 +102,12 @@ class PiperRealRobot:
         # 用户指定的初始位置 (SDK deg) — 手臂自然前伸，末端在底座前上方
         # j2=90, j3=-90: FK pos ≈ [0.377, 0, 0.457]
         self.home_joints_sdk_deg = np.array([
-             0.0,   # joint_1
-            90.0,   # joint_2
-           -90.0,   # joint_3
-             0.0,   # joint_4
-             0.0,   # joint_5  有效范围 [-45, 45]，取中点
-             0.0,   # joint_6
+             7.676,   # joint_1
+            83.899,   # joint_2
+           -26.100,   # joint_3
+           -12.000,   # joint_4
+             8.120,   # joint_5  有效范围 [-45, 45]，取中点
+           -36.701,   # joint_6
         ])
 
         

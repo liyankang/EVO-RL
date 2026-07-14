@@ -1,0 +1,16 @@
+# Streamlit 应用所需依赖
+streamlit>=1.28.0
+pandas>=2.0.0
+numpy>=1.24.0
+opencv-python>=4.8.0
+scipy>=1.11.0
+plotly>=5.17.0
+
+# LeRobot 相关依赖（如果需要完整功能）
+lerobot>=0.1.0
+
+# 视频处理依赖
+av>=11.0.0
+
+# 数据处理依赖
+pyarrow>=12.0.0

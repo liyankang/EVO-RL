@@ -8,7 +8,7 @@ from typing import Dict, List, Tuple, Any
 import pandas as pd
 import cv2
 
-from file_utils import _read_json
+from .file_utils import _read_json
 
 logger = logging.getLogger(__name__)
 

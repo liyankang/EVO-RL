@@ -2,6 +2,7 @@
 
 import logging
 import shutil
+import re
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Any
 
@@ -17,11 +18,14 @@ except Exception:  # pragma: no cover - keep the standalone web tool usable.
     compute_episode_stats = None
     write_stats = None
 
-from file_utils import _read_json, _write_json, _read_jsonl, _write_jsonl, _flatten_dict, _serialize_stats_tree
-from video_utils import write_video_frame_window, get_truncation_window
-from backup_manager import BackupManager
+from .file_utils import _read_json, _write_json, _read_jsonl, _write_jsonl, _flatten_dict, _serialize_stats_tree
+from .video_utils import write_video_frame_window, get_truncation_window
+from .backup_manager import BackupManager
 
 logger = logging.getLogger(__name__)
+
+
+_QUANTILE_KEY_PATTERN = re.compile(r"^q\d+$")
 
 
 class VideoTruncator:
@@ -37,6 +41,7 @@ class VideoTruncator:
         keep_end_frame: Optional[int] = None,
         start_time: Optional[float] = None,
         end_time: Optional[float] = None,
+        auto_backup: bool = True,
     ):
         self.dataset_root = Path(dataset_root)
         self.episode_index = int(episode_index)
@@ -47,6 +52,7 @@ class VideoTruncator:
         # 新增：基于时间戳的截断参数
         self.start_time = float(start_time) if start_time is not None else None
         self.end_time = float(end_time) if end_time is not None else None
+        self.auto_backup = bool(auto_backup)
         self.data_dir = self.dataset_root / "data" / "chunk-000"
         self.video_dir = self.dataset_root / "videos" / "chunk-000"
         self.meta_dir = self.dataset_root / "meta"
@@ -168,6 +174,33 @@ class VideoTruncator:
                 all_stats[ep_idx] = self._episode_stats_from_dataframe(df.reset_index(drop=True), info)
         return all_stats
 
+    def _strip_quantile_stats(self, stats: Any) -> Any:
+        """递归移除 LeRobot 自动生成的分位数统计键，例如 q01/q10/q50。"""
+        if isinstance(stats, dict):
+            cleaned = {}
+            for key, value in stats.items():
+                if isinstance(key, str) and _QUANTILE_KEY_PATTERN.match(key):
+                    continue
+                cleaned[key] = self._strip_quantile_stats(value)
+            return cleaned
+        if isinstance(stats, list):
+            return [self._strip_quantile_stats(item) for item in stats]
+        return stats
+
+    def _merge_stats_with_existing_schema(self, existing: Any, new_stats: Any) -> Any:
+        """按现有 schema 回写统计值，不新增源数据里没有的键。"""
+        if isinstance(existing, dict) and isinstance(new_stats, dict):
+            merged = {}
+            for key, existing_value in existing.items():
+                if isinstance(key, str) and _QUANTILE_KEY_PATTERN.match(key):
+                    continue
+                if key in new_stats:
+                    merged[key] = self._merge_stats_with_existing_schema(existing_value, new_stats[key])
+                else:
+                    merged[key] = existing_value
+            return merged
+        return new_stats
+
     def _write_aggregated_stats_json(self, all_episode_stats: Dict):
         """写入聚合统计信息到stats.json文件。"""
         if not all_episode_stats or aggregate_stats is None or write_stats is None:
@@ -206,7 +239,13 @@ class VideoTruncator:
                 if not any(video_key in key for video_key in ['observation.images', 'observation.video']):
                     clean_stats[key] = value
 
-            row["stats"] = _serialize_stats_tree(clean_stats)
+            clean_stats = self._strip_quantile_stats(clean_stats)
+            if "stats" in row and isinstance(row["stats"], dict):
+                row["stats"] = _serialize_stats_tree(
+                    self._merge_stats_with_existing_schema(row["stats"], clean_stats)
+                )
+            elif "stats" in row:
+                row["stats"] = _serialize_stats_tree(clean_stats)
             if "length" in row:
                 row["length"] = new_length
             if "num_frames" in row:
@@ -242,6 +281,8 @@ class VideoTruncator:
                 df.loc[mask, "end_timestamp"] = end_ts
 
             for key, value in flat_stats.items():
+                if key not in df.columns:
+                    continue
                 df.loc[mask, key] = [value] * int(mask.sum())
 
             df.to_parquet(parquet_path, index=False)
@@ -633,11 +674,13 @@ class VideoTruncator:
             for row in rows:
                 if row.get("episode_index") != self.episode_index:
                     continue
-                row["length"] = new_length
-                row["num_frames"] = new_length
-                if start_ts is not None:
+                if "length" in row:
+                    row["length"] = new_length
+                if "num_frames" in row:
+                    row["num_frames"] = new_length
+                if start_ts is not None and "start_timestamp" in row:
                     row["start_timestamp"] = start_ts
-                if end_ts is not None:
+                if end_ts is not None and "end_timestamp" in row:
                     row["end_timestamp"] = end_ts
                 updated = True
                 break
@@ -646,16 +689,19 @@ class VideoTruncator:
 
         all_episode_stats = self._compute_all_episode_stats(info)
         episode_stats = all_episode_stats.get(self.episode_index, truncate_result.get("episode_stats", {}))
-        flat_stats = _flatten_dict({"stats": episode_stats})
+        episode_stats = self._strip_quantile_stats(episode_stats)
+        flat_stats = {
+            key: value
+            for key, value in _flatten_dict({"stats": episode_stats}).items()
+            if not any(_QUANTILE_KEY_PATTERN.match(part) for part in key.split("/"))
+        }
         self._update_legacy_episodes_stats_jsonl(episode_stats, new_length, start_ts, end_ts)
         self._update_episode_metadata_parquet("episodes", self.episode_index, new_length, start_ts, end_ts, flat_stats)
         self._update_episode_metadata_parquet(
             "episodes_stats", self.episode_index, new_length, start_ts, end_ts, flat_stats
         )
 
-        stats_json_path = self.meta_dir / "stats.json"
-        if stats_json_path.exists():
-            self._write_aggregated_stats_json(all_episode_stats)
+        # 保持源数据 schema，不在裁剪后重写 v3 聚合 stats.json。
 
     def truncate(self, validate_alignment: bool = True) -> Dict[str, Any]:
         """执行截断操作的主函数。"""
@@ -715,9 +761,11 @@ class VideoTruncator:
                 details = "; ".join(f"{camera}: {info['error']}" for camera, info in failed_videos.items())
                 raise RuntimeError(f"Video/action synchronization check failed: {details}")
 
-            backup_dir = self.backup_manager.create_backup(
-                processed_videos, self._data_parquet_files(), self.meta_dir
-            )
+            backup_dir = None
+            if self.auto_backup:
+                backup_dir = self.backup_manager.create_backup(
+                    processed_videos, self._data_parquet_files(), self.meta_dir
+                )
 
             trajectory_result = self.truncate_trajectory()
             if trajectory_result["new_length"] != trajectory_plan["new_length"]:
@@ -730,17 +778,7 @@ class VideoTruncator:
 
             self.update_meta_files(trajectory_result)
             
-            # 调用LeRobotDataset.recompute_stats()来更新数据集统计信息
-            try:
-                from lerobot.datasets import LeRobotDataset
-                logger.info("Calling dataset.recompute_stats() to update statistics...")
-                dataset = LeRobotDataset(self.dataset_root)
-                dataset.recompute_stats()
-                logger.info("Successfully recomputed dataset statistics")
-            except ImportError:
-                logger.warning("LeRobotDataset not available, skipping recompute_stats()")
-            except Exception as stats_error:
-                logger.warning(f"Failed to recompute stats: {stats_error}")
+            logger.info("Skipping LeRobotDataset.recompute_stats() to preserve source metadata schema")
 
             successful_videos = {k: v for k, v in processed_videos.items() if 'error' not in v}
 
@@ -756,7 +794,7 @@ class VideoTruncator:
                 'failed_videos_count': 0,
                 'trajectory_frames': trajectory_result['new_length'],
                 'trajectory_result': trajectory_result,
-                'backup_dir': str(backup_dir),
+                'backup_dir': str(backup_dir) if backup_dir else None,
                 'episode_number': self.episode_index,
                 'time_range': [self.start_time, self.end_time] if self.start_time is not None else None,
             }

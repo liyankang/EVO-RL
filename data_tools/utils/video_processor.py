@@ -13,10 +13,10 @@ from pathlib import Path
 from typing import Dict, Any
 
 # 导入主要类和函数以保持向后兼容
-from dataset_loader import DatasetLoader
-from video_truncator import VideoTruncator
-from backup_manager import restore_latest_backup
-from file_utils import (
+from .dataset_loader import DatasetLoader
+from .video_truncator import VideoTruncator
+from .backup_manager import restore_latest_backup
+from .file_utils import (
     _json_default,
     _read_json,
     _write_json,
