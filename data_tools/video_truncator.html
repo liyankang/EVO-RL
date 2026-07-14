@@ -1,0 +1,1690 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>具身智能数据预处理平台</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 30px;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+        }
+        
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border-radius: 10px;
+            background: #f8f9fa;
+        }
+        
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 8px;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #555;
+        }
+        
+        input[type="text"],
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .file-info {
+            margin-top: 10px;
+            padding: 10px;
+            background: #e3f2fd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        
+        .file-info.error {
+            background: #ffebee;
+            color: #c62828;
+        }
+        
+        .file-info.success {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+        
+        .dataset-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .info-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .info-card h3 {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        
+        .info-card p {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .episode-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .episode-card {
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .episode-card:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .episode-card.selected {
+            border-color: #667eea;
+            background: #e8f2ff;
+        }
+        
+        .episode-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .episode-number {
+            font-weight: 600;
+            color: #333;
+            font-size: 16px;
+        }
+        
+        .video-status {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .video-badge {
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .video-badge.primary {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+        
+        .video-badge.wrist {
+            background: #fce4ec;
+            color: #c2185b;
+        }
+        
+        .video-badge.missing {
+            background: #ffebee;
+            color: #c62828;
+        }
+        
+        .episode-details {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .episode-details span {
+            display: block;
+            margin-bottom: 4px;
+        }
+        
+        .video-container {
+            position: relative;
+            background: #000;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        video {
+            width: 100%;
+            display: block;
+        }
+        
+        .controls {
+            margin-top: 20px;
+        }
+        
+        .slider-container {
+            margin-bottom: 20px;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            height: 10px;
+            border-radius: 5px;
+            background: #ddd;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb:hover {
+            background: #764ba2;
+        }
+
+        .range-wrap {
+            position: relative;
+            height: 34px;
+        }
+
+        .range-wrap input[type="range"] {
+            position: absolute;
+            left: 0;
+            top: 12px;
+            margin: 0;
+            background: transparent;
+            pointer-events: none;
+        }
+
+        .range-wrap input[type="range"]::-webkit-slider-thumb {
+            pointer-events: auto;
+        }
+
+        .range-track {
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 16px;
+            height: 10px;
+            border-radius: 5px;
+            background: #ddd;
+            overflow: hidden;
+        }
+
+        .range-selection {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            border-radius: 5px;
+            background: linear-gradient(90deg, #2fb344, #667eea);
+        }
+        
+        .frame-info {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .frame-info span {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        button {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .btn-warning {
+            background: #f59f00;
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: #e67700;
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #218838;
+        }
+        
+        .progress-container {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            display: none;
+        }
+        
+        .progress-container.active {
+            display: block;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background: #e0e0e0;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            width: 0%;
+            transition: width 0.3s;
+        }
+        
+        .progress-text {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .status-message {
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: none;
+            white-space: pre-wrap;
+        }
+        
+        .status-message.success {
+            display: block;
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status-message.error {
+            display: block;
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .preview-thumbnail {
+            margin-top: 15px;
+            text-align: center;
+        }
+        
+        .preview-thumbnail img {
+            max-width: 100%;
+            border-radius: 8px;
+            border: 3px solid #667eea;
+        }
+        
+        .preview-label {
+            margin-top: 8px;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .camera-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .camera-option {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .camera-option:hover {
+            border-color: #667eea;
+        }
+        
+        .camera-option.selected {
+            border-color: #667eea;
+            background: #e8f2ff;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+        
+        .loading::after {
+            content: '...';
+            animation: dots 1.5s steps(5, end) infinite;
+        }
+        
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60% { content: '...'; }
+            80%, 100% { content: ''; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎬 具身智能数据预处理平台</h1>
+        <p class="subtitle">选择数据集和Episode，截断轨迹和视频数据</p>
+        
+        <!-- 数据集路径选择 -->
+        <div class="section">
+            <div class="section-title">📁 数据集加载</div>
+            
+            <div class="input-group">
+                <label for="datasetRoot">数据集根目录</label>
+                <input type="text" id="datasetRoot" placeholder="例如: /media/Data/huggingface/lerobot/lerobot_v3/data_toiletButton_0713" value="/media/Data/huggingface/lerobot/lerobot_v3/data_toiletButton_0713">
+                <div class="file-info" id="datasetInfo">请输入数据集根目录</div>
+            </div>
+            
+            <button class="btn-primary" onclick="loadDataset()">加载数据集</button>
+            
+            <div id="datasetInfoPanel" class="hidden" style="margin-top: 20px;">
+                <div class="dataset-info">
+                    <div class="info-card">
+                        <h3>总Episodes</h3>
+                        <p id="totalEpisodes">-</p>
+                    </div>
+                    <div class="info-card">
+                        <h3>总帧数</h3>
+                        <p id="totalDatasetFrames">-</p>
+                    </div>
+                    <div class="info-card">
+                        <h3>帧率</h3>
+                        <p id="fps">-</p>
+                    </div>
+                    <div class="info-card">
+                        <h3>机器人类型</h3>
+                        <p id="robotType">-</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 动作平滑功能 -->
+        <div id="smoothingSection" class="section hidden">
+            <div class="section-title">📊 动作数据平滑</div>
+            
+            <div class="input-group">
+                <label>平滑方法</label>
+                <div class="camera-selector" style="margin-top: 10px;">
+                    <div class="camera-option selected" id="savgolMethod" onclick="selectSmoothMethod('savgol')">
+                        📈 Savitzky-Golay (推荐)
+                    </div>
+                    <div class="camera-option" id="gaussianMethod" onclick="selectSmoothMethod('gaussian')">
+                        📊 高斯平滑
+                    </div>
+                </div>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
+                <div>
+                    <label id="windowLabel">窗口大小 (帧数)</label>
+                    <input type="number" id="smoothWindow" value="7" min="3" step="2" placeholder="7">
+                    <div style="font-size: 12px; color: #666; margin-top: 5px;">奇数，越大越平滑</div>
+                </div>
+                <div id="polyorderDiv">
+                    <label>多项式阶数</label>
+                    <input type="number" id="smoothPolyorder" value="2" min="1" max="5" placeholder="2">
+                    <div style="font-size: 12px; color: #666; margin-top: 5px;">越小越平滑</div>
+                </div>
+                <div id="sigmaDiv" class="hidden">
+                    <label>高斯标准差 (帧)</label>
+                    <input type="number" id="smoothSigma" value="2.0" min="0.1" step="0.1" placeholder="2.0">
+                    <div style="font-size: 12px; color: #666; margin-top: 5px;">越大越平滑</div>
+                </div>
+            </div>
+            
+            <div style="margin-top: 15px;">
+                <label style="display: flex; align-items: center;">
+                    <input type="checkbox" id="dryRunCheckbox" style="width: auto; margin-right: 10px;">
+                    预览模式 (不实际修改文件)
+                </label>
+            </div>
+            
+            <div style="margin-top: 20px;" class="buttons">
+                <button class="btn-primary" onclick="previewSmoothing()">🔍 预览平滑效果</button>
+                <button class="btn-success" onclick="executeSmoothing()">📊 执行平滑处理</button>
+            </div>
+            
+            <!-- 平滑统计显示 -->
+            <div id="smoothingStats" style="margin-top: 20px; padding: 15px; background: #e3f2fd; border-radius: 8px; display: none;">
+                <h4 style="margin-bottom: 10px; color: #1976d2;">📈 平滑统计对比</h4>
+                <div id="smoothingStatsContent" style="font-size: 14px; color: #555;"></div>
+            </div>
+        </div>
+        
+         <!-- Episode选择 -->
+         <div id="episodeSection" class="section hidden">
+             <div class="section-title">🎯 Episode选择</div>
+             
+             <div class="input-group">
+                 <label>选择要截断的Episode</label>
+                 <div id="episodeGrid" class="episode-grid">
+                     <div class="loading">加载中</div>
+                 </div>
+             </div>
+             
+             <div id="selectedEpisodeInfo" class="hidden" style="margin-top: 15px;">
+                 <h3>已选择: Episode <span id="selectedEpisodeNumber">-</span></h3>
+                 <div class="dataset-info" style="margin-top: 10px;">
+                     <div class="info-card">
+                         <h3>长度</h3>
+                         <p id="selectedEpisodeLength">-</p>
+                     </div>
+                     <div class="info-card">
+                         <h3>时间范围</h3>
+                         <p id="selectedEpisodeTimeRange">-</p>
+                     </div>
+                     <div class="info-card">
+                         <h3>时长</h3>
+                         <p id="selectedEpisodeDuration">-</p>
+                     </div>
+                     <div class="info-card">
+                         <h3>验证状态</h3>
+                         <p id="alignmentStatus" style="color: #666;">未验证</p>
+                     </div>
+                 </div>
+             </div>
+             
+             <!-- 数据验证面板 -->
+             <div id="validationPanel" class="hidden" style="margin-top: 15px; padding: 15px; background: #fff3e0; border-radius: 8px;">
+                 <h4 style="margin-bottom: 10px; color: #e65100;">🔍 数据验证详情</h4>
+                 <div id="validationDetails" style="font-size: 14px; color: #555;"></div>
+             </div>
+         </div>
+        
+        <!-- 视频预览和控制 -->
+        <div id="videoSection" class="section hidden">
+            <div class="section-title">🎥 视频预览和截断选择</div>
+            
+            <div class="camera-selector">
+                <div class="camera-option selected" id="primaryCamera" onclick="selectCamera('primary')">
+                    📷 Primary Camera
+                </div>
+                <div class="camera-option" id="wristCamera" onclick="selectCamera('wrist')">
+                    ⌚ Wrist Camera
+                </div>
+            </div>
+            
+            <div class="video-container">
+                <video id="videoPlayer" controls>
+                    <source src="" type="video/mp4">
+                    您的浏览器不支持视频播放
+                </video>
+            </div>
+            
+            <div class="controls">
+                <!-- 截断模式选择 -->
+                <div style="margin-bottom: 20px;">
+                    <label>截断模式</label>
+                    <div class="camera-selector" style="margin-top: 10px;">
+                        <div class="camera-option selected" id="frameMode" onclick="selectTruncateMode('frame')">
+                            🎯 基于帧数
+                        </div>
+                        <div class="camera-option" id="timeMode" onclick="selectTruncateMode('time')">
+                            ⏰ 基于时间戳
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 基于帧数的截断控制 -->
+                <div id="frameModeControls">
+                    <div class="slider-container">
+                        <label>保留区间: <span id="rangeStartNumber">0</span> - <span id="rangeEndNumber">0</span> 帧</label>
+                        <div class="range-wrap">
+                            <div class="range-track">
+                                <div class="range-selection" id="rangeSelection"></div>
+                            </div>
+                            <input type="range" id="rangeStartSlider" min="0" max="100" value="0">
+                            <input type="range" id="rangeEndSlider" min="0" max="100" value="100">
+                        </div>
+                        <div class="frame-info">
+                            <span>保留帧数: <span id="keptFrames">0</span></span>
+                            <span>总帧数: <span id="totalEpisodeFrames">100</span></span>
+                            <span>时间: <span id="timeStamp">0.00s</span></span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 基于时间戳的截断控制 -->
+                <div id="timeModeControls" class="hidden" style="margin-bottom: 20px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div>
+                            <label>开始时间 (秒)</label>
+                            <input type="number" id="startTimeInput" step="0.1" min="0" placeholder="0.0">
+                        </div>
+                        <div>
+                            <label>结束时间 (秒)</label>
+                            <input type="number" id="endTimeInput" step="0.1" min="0" placeholder="10.0">
+                        </div>
+                    </div>
+                    <div style="margin-top: 10px;">
+                        <button class="btn-secondary" onclick="previewTimeRange()">🔍 预览时间范围</button>
+                        <div id="timeRangePreview" style="margin-top: 10px; padding: 10px; background: #e3f2fd; border-radius: 6px; display: none;">
+                            <strong>时间范围预览:</strong>
+                            <div id="timeRangeDetails"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="preview-thumbnail" id="previewThumbnail" style="display: none;">
+                    <img id="thumbnailImage" src="" alt="截断帧预览">
+                    <div class="preview-label">截断位置预览</div>
+                </div>
+                
+                <!-- 操作按钮 -->
+                <div class="buttons">
+                    <button class="btn-secondary" id="previewBtn" onclick="previewFrame('start')">📸 预览起点</button>
+                    <button class="btn-primary" onclick="validateAlignment()">🔍 验证数据对应</button>
+                    <button class="btn-success" id="truncateBtn" onclick="executeTruncate()">✂️ 执行截断</button>
+                    <button class="btn-warning" onclick="undoLast()">↩️ 回退上一步</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 进度显示 -->
+        <div class="progress-container" id="progressContainer">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="progress-text" id="progressText">准备中...</div>
+        </div>
+        
+        <!-- 状态消息 -->
+        <div class="status-message" id="statusMessage"></div>
+    </div>
+
+    <script>
+        let datasetLoaded = false;
+        let selectedEpisode = null;
+        let selectedEpisodeIndex = null;
+        let selectedCamera = 'primary';
+        let videoLoaded = false;
+        let totalFrames = 0;
+        let fps = 30;
+        let datasetEpisodes = [];
+        let currentVideoPath = '';
+        
+        const videoPlayer = document.getElementById('videoPlayer');
+        const rangeStartSlider = document.getElementById('rangeStartSlider');
+        const rangeEndSlider = document.getElementById('rangeEndSlider');
+        const rangeStartNumber = document.getElementById('rangeStartNumber');
+        const rangeEndNumber = document.getElementById('rangeEndNumber');
+        const rangeSelection = document.getElementById('rangeSelection');
+        const keptFramesDisplay = document.getElementById('keptFrames');
+        const totalFramesDisplay = document.getElementById('totalEpisodeFrames');
+        const timeStampDisplay = document.getElementById('timeStamp');
+        
+        // 加载数据集
+        async function loadDataset() {
+            const datasetRoot = document.getElementById('datasetRoot').value;
+            
+            if (!datasetRoot) {
+                showStatus('error', '请输入数据集根目录');
+                return;
+            }
+            
+            updateDatasetInfo('success', '正在加载数据集...');
+            
+            try {
+                const response = await fetch('/load_dataset', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ dataset_root: datasetRoot })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    datasetLoaded = true;
+                    datasetEpisodes = data.episodes;
+                    
+                    // 显示数据集信息
+                    document.getElementById('datasetInfoPanel').classList.remove('hidden');
+                    document.getElementById('totalEpisodes').textContent = data.dataset_info.total_episodes;
+                    document.getElementById('totalDatasetFrames').textContent = data.dataset_info.total_frames;
+                    document.getElementById('fps').textContent = data.dataset_info.fps;
+                    document.getElementById('robotType').textContent = data.dataset_info.robot_type;
+                    fps = data.dataset_info.fps;
+                    
+                    // 显示Episode列表
+                    displayEpisodes(data.episodes);
+                    restoreSelectedEpisode(data.episodes);
+                    
+                    // 显示Episode选择区域
+                    document.getElementById('episodeSection').classList.remove('hidden');
+                    
+                    updateDatasetInfo('success', `数据集加载成功！包含 ${data.episodes.length} 个episodes`);
+                    
+                    // 显示动作平滑区域
+                    document.getElementById('smoothingSection').classList.remove('hidden');
+                } else {
+                    updateDatasetInfo('error', `加载失败: ${data.error}`);
+                    if (data.details) {
+                        showStatus('error', data.details.join('\n'));
+                    }
+                }
+            } catch (error) {
+                updateDatasetInfo('error', `请求失败: ${error.message}`);
+            }
+        }
+        
+        // 选择平滑方法
+        let currentSmoothMethod = 'savgol';
+        
+        function selectSmoothMethod(method) {
+            currentSmoothMethod = method;
+            
+            // 更新UI
+            document.getElementById('savgolMethod').classList.remove('selected');
+            document.getElementById('gaussianMethod').classList.remove('selected');
+            document.getElementById(method + 'Method').classList.add('selected');
+            
+            // 切换参数显示
+            if (method === 'savgol') {
+                document.getElementById('polyorderDiv').classList.remove('hidden');
+                document.getElementById('sigmaDiv').classList.add('hidden');
+            } else {
+                document.getElementById('polyorderDiv').classList.add('hidden');
+                document.getElementById('sigmaDiv').classList.remove('hidden');
+            }
+        }
+        
+        // 预览平滑效果
+        async function previewSmoothing() {
+            const datasetRoot = document.getElementById('datasetRoot').value;
+            if (!datasetRoot) {
+                showStatus('error', '请输入数据集根目录');
+                return;
+            }
+            
+            const requestData = {
+                dataset_root: datasetRoot,
+                method: currentSmoothMethod,
+                window: parseInt(document.getElementById('smoothWindow').value),
+                polyorder: parseInt(document.getElementById('smoothPolyorder').value),
+                sigma: parseFloat(document.getElementById('smoothSigma').value),
+                cols: ['action'],
+                dry_run: true
+            };
+            
+            showProgress('正在预览平滑效果...');
+            
+            try {
+                const response = await fetch('/smooth_actions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestData)
+                });
+                
+                const data = await response.json();
+                hideProgress();
+                
+                if (data.success) {
+                    displaySmoothingStats(data, true);
+                    showStatus('success', `📊 预览完成！共处理 ${data.total_episodes} 个episodes，${data.total_frames} 帧`);
+                } else {
+                    showStatus('error', `❌ 预览失败: ${data.error}`);
+                }
+            } catch (error) {
+                hideProgress();
+                showStatus('error', `❌ 请求失败: ${error.message}`);
+            }
+        }
+        
+        // 执行平滑处理
+        async function executeSmoothing() {
+            const datasetRoot = document.getElementById('datasetRoot').value;
+            if (!datasetRoot) {
+                showStatus('error', '请输入数据集根目录');
+                return;
+            }
+            
+            const dryRun = document.getElementById('dryRunCheckbox').checked;
+            if (dryRun) {
+                // 如果勾选了预览模式，调用预览函数
+                previewSmoothing();
+                return;
+            }
+            
+            const requestData = {
+                dataset_root: datasetRoot,
+                method: currentSmoothMethod,
+                window: parseInt(document.getElementById('smoothWindow').value),
+                polyorder: parseInt(document.getElementById('smoothPolyorder').value),
+                sigma: parseFloat(document.getElementById('smoothSigma').value),
+                cols: ['action'],
+                dry_run: false
+            };
+            
+            if (!confirm(`确定要对数据集执行平滑处理吗？\n\n这将修改原始数据文件！\n\n方法: ${currentSmoothMethod}\n窗口大小: ${requestData.window}\n参数: ${currentSmoothMethod === 'savgol' ? `多项式阶数: ${requestData.polyorder}` : `高斯标准差: ${requestData.sigma}`}`)) {
+                return;
+            }
+            
+            showProgress('正在执行平滑处理...');
+            
+            try {
+                const response = await fetch('/smooth_actions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestData)
+                });
+                
+                const data = await response.json();
+                hideProgress();
+                
+                if (data.success) {
+                    displaySmoothingStats(data, false);
+                    
+                    let message = `📊 平滑处理完成！\n`;
+                    message += `• 总文件数: ${data.total_files}\n`;
+                    message += `• 成功处理: ${data.successful_files}\n`;
+                    message += `• 处理失败: ${data.failed_files}\n`;
+                    message += `• 总Episodes: ${data.total_episodes}\n`;
+                    message += `• 总帧数: ${data.total_frames}\n`;
+                    message += `• 方法: ${data.method}\n`;
+                    message += `• 窗口大小: ${data.parameters.window}\n`;
+                    
+                    if (data.method === 'savgol') {
+                        message += `• 多项式阶数: ${data.parameters.polyorder}\n`;
+                    } else {
+                        message += `• 高斯标准差: ${data.parameters.sigma}\n`;
+                    }
+                    
+                    showStatus('success', message);
+                } else {
+                    showStatus('error', `❌ 平滑失败: ${data.error}`);
+                }
+            } catch (error) {
+                hideProgress();
+                showStatus('error', `❌ 请求失败: ${error.message}`);
+            }
+        }
+        
+        // 显示平滑统计信息
+        function displaySmoothingStats(data, isPreview) {
+            const statsDiv = document.getElementById('smoothingStats');
+            const contentDiv = document.getElementById('smoothingStatsContent');
+            
+            if (!data.statistics) {
+                statsDiv.style.display = 'none';
+                return;
+            }
+            
+            statsDiv.style.display = 'block';
+            
+            const stats = data.statistics;
+            let html = `<div style="margin-bottom: 15px;"><strong>处理信息:</strong><br>`;
+            html += `• 模式: ${isPreview ? '预览' : '正式处理'}<br>`;
+            html += `• 总文件: ${data.total_files}<br>`;
+            html += `• 成功: ${data.successful_files}<br>`;
+            html += `• 总帧数: ${data.total_frames}<br>`;
+            html += `• 总Episodes: ${data.total_episodes}</div>`;
+            
+            // 显示原始和平滑后的统计对比
+            if (stats.original && stats.smoothed) {
+                html += `<div style="margin-bottom: 15px;"><strong>原始 vs 平滑后对比:</strong><br>`;
+                
+                const joints = ['j1', 'j2', 'j3', 'j4', 'j5', 'j6', 'gripper', 'overall'];
+                
+                for (const joint of joints) {
+                    if (stats.original[joint] && stats.smoothed[joint]) {
+                        const orig = stats.original[joint];
+                        const smooth = stats.smoothed[joint];
+                        
+                        html += `<div style="margin-top: 8px; padding: 8px; background: white; border-radius: 4px;">`;
+                        html += `<strong>${joint === 'overall' ? '任意关节' : joint}:</strong><br>`;
+                        html += `• P95跳变: ${orig.p95.toFixed(3)}° → ${smooth.p95.toFixed(3)}°`;
+                        
+                        if (stats.improvement && stats.improvement[joint]) {
+                            const improvement = stats.improvement[joint];
+                            const p95Improvement = improvement.p95;
+                            if (p95Improvement > 0) {
+                                html += ` <span style="color: #2e7d32;">(↓${p95Improvement.toFixed(1)}%)</span>`;
+                            }
+                        }
+                        
+                        html += `<br>`;
+                        html += `• P99跳变: ${orig.p99.toFixed(3)}° → ${smooth.p99.toFixed(3)}°`;
+                        
+                        if (joint === 'overall') {
+                            html += `<br>`;
+                            html += `• >2°跳变: ${orig.gt_2deg.toFixed(1)}% → ${smooth.gt_2deg.toFixed(1)}%<br>`;
+                            html += `• >5°跳变: ${orig.gt_5deg.toFixed(1)}% → ${smooth.gt_5deg.toFixed(1)}%`;
+                        }
+                        
+                        html += `</div>`;
+                    }
+                }
+                
+                html += `</div>`;
+            }
+            
+            // 显示文件处理详情
+            if (data.file_results && data.file_results.length > 0) {
+                html += `<div><strong>文件处理详情:</strong><br>`;
+                data.file_results.forEach((result, index) => {
+                    if (result.error) {
+                        html += `• 文件${index + 1}: ❌ ${result.error}<br>`;
+                    } else {
+                        html += `• 文件${index + 1}: ✅ ${result.episodes} episodes, ${result.total_frames} 帧`;
+                        if (result.backup_created) {
+                            html += ` (已备份)`;
+                        }
+                        html += `<br>`;
+                    }
+                });
+                html += `</div>`;
+            }
+            
+            contentDiv.innerHTML = html;
+        }
+        
+        // 显示Episodes列表
+        function displayEpisodes(episodes) {
+            const grid = document.getElementById('episodeGrid');
+            grid.innerHTML = '';
+            
+            episodes.forEach(episode => {
+                const card = document.createElement('div');
+                card.className = 'episode-card';
+                if (selectedEpisodeIndex === episode.episode_index) {
+                    card.classList.add('selected');
+                }
+                card.onclick = (event) => selectEpisode(episode, event);
+                
+                const primaryStatus = episode.primary_video_exists ? 
+                    '<span class="video-badge primary">✓ Primary</span>' : 
+                    '<span class="video-badge missing">✗ Primary</span>';
+                
+                const wristStatus = episode.wrist_video_exists ? 
+                    '<span class="video-badge wrist">✓ Wrist</span>' : 
+                    '<span class="video-badge missing">✗ Wrist</span>';
+                
+                card.innerHTML = `
+                    <div class="episode-header">
+                        <span class="episode-number">Episode ${episode.episode_index}</span>
+                        <div class="video-status">
+                            ${primaryStatus}
+                            ${wristStatus}
+                        </div>
+                    </div>
+                    <div class="episode-details">
+                        <span>📊 长度: ${episode.length} 帧</span>
+                        <span>⏱️ 时长: ${(episode.length / fps).toFixed(2)}s</span>
+                    </div>
+                `;
+                
+                grid.appendChild(card);
+            });
+        }
+        
+        // 选择截断模式
+        let currentTruncateMode = 'frame'; // 'frame' 或 'time'
+        
+        function selectTruncateMode(mode) {
+            currentTruncateMode = mode;
+            
+            // 更新UI
+            document.getElementById('frameMode').classList.remove('selected');
+            document.getElementById('timeMode').classList.remove('selected');
+            document.getElementById(mode + 'Mode').classList.add('selected');
+            
+            // 切换控制面板
+            if (mode === 'frame') {
+                document.getElementById('frameModeControls').classList.remove('hidden');
+                document.getElementById('timeModeControls').classList.add('hidden');
+                document.getElementById('previewBtn').classList.remove('hidden');
+                document.getElementById('truncateBtn').textContent = '✂️ 保留中间';
+            } else {
+                document.getElementById('frameModeControls').classList.add('hidden');
+                document.getElementById('timeModeControls').classList.remove('hidden');
+                document.getElementById('previewBtn').classList.add('hidden');
+                document.getElementById('truncateBtn').textContent = '⏰ 时间戳截断';
+                
+                // 自动验证数据
+                validateAlignment();
+            }
+        }
+        
+        // 选择Episode
+        function selectEpisode(episode, event) {
+            selectedEpisode = episode;
+            selectedEpisodeIndex = episode.episode_index;
+            
+            // 更新UI
+            document.querySelectorAll('.episode-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            event.currentTarget.classList.add('selected');
+            
+            // 显示选中信息
+            document.getElementById('selectedEpisodeInfo').classList.remove('hidden');
+            document.getElementById('selectedEpisodeNumber').textContent = episode.episode_index;
+            document.getElementById('selectedEpisodeLength').textContent = episode.length;
+            
+            // 显示时间范围信息
+            if (episode.start_timestamp !== undefined && episode.end_timestamp !== undefined) {
+                const timeRange = `${episode.start_timestamp.toFixed(2)}s - ${episode.end_timestamp.toFixed(2)}s`;
+                document.getElementById('selectedEpisodeTimeRange').textContent = timeRange;
+                const duration = (episode.end_timestamp - episode.start_timestamp).toFixed(2);
+                document.getElementById('selectedEpisodeDuration').textContent = `${duration}s`;
+            } else {
+                document.getElementById('selectedEpisodeTimeRange').textContent = '-';
+                document.getElementById('selectedEpisodeDuration').textContent = '-';
+            }
+            
+            // 显示视频区域
+            document.getElementById('videoSection').classList.remove('hidden');
+            
+            // 加载默认相机视频
+            loadVideoForEpisode(episode);
+            
+            // 自动验证数据
+            validateAlignment();
+        }
+
+        function restoreSelectedEpisode(episodes) {
+            if (selectedEpisodeIndex === null) {
+                return;
+            }
+
+            const refreshedEpisode = episodes.find(episode => episode.episode_index === selectedEpisodeIndex);
+            if (!refreshedEpisode) {
+                selectedEpisode = null;
+                selectedEpisodeIndex = null;
+                videoLoaded = false;
+                videoPlayer.removeAttribute('src');
+                videoPlayer.load();
+                document.getElementById('videoSection').classList.add('hidden');
+                document.getElementById('selectedEpisodeInfo').classList.add('hidden');
+                return;
+            }
+
+            selectedEpisode = refreshedEpisode;
+            document.getElementById('selectedEpisodeInfo').classList.remove('hidden');
+            document.getElementById('selectedEpisodeNumber').textContent = refreshedEpisode.episode_index;
+            document.getElementById('selectedEpisodeLength').textContent = refreshedEpisode.length;
+            document.getElementById('videoSection').classList.remove('hidden');
+            loadVideoForEpisode(refreshedEpisode);
+        }
+        
+        // 选择相机
+        function selectCamera(camera) {
+            selectedCamera = camera;
+            
+            // 更新UI
+            document.querySelectorAll('.camera-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            
+            document.getElementById(camera + 'Camera').classList.add('selected');
+            
+            // 重新加载视频
+            if (selectedEpisode) {
+                loadVideoForEpisode(selectedEpisode);
+            }
+        }
+        
+        // 为Episode加载视频
+        function loadVideoForEpisode(episode) {
+            let videoPath;
+            
+            if (selectedCamera === 'primary') {
+                videoPath = episode.primary_video_path;
+            } else {
+                videoPath = episode.wrist_video_path;
+            }
+            
+            if (!videoPath) {
+                showStatus('error', `Episode ${episode.episode_index} 没有${selectedCamera}相机视频`);
+                return;
+            }
+            
+            currentVideoPath = videoPath;
+            // 使用服务器路由访问视频文件
+            videoLoaded = false;
+            videoPlayer.pause();
+            videoPlayer.src = '/video/' + videoPath + '?v=' + Date.now();
+            videoPlayer.load();
+            totalFrames = episode.length;
+            
+            // 更新滑块
+            const maxFrame = Math.max(0, totalFrames - 1);
+            rangeStartSlider.max = maxFrame;
+            rangeEndSlider.max = maxFrame;
+            rangeStartSlider.value = 0;
+            rangeEndSlider.value = maxFrame;
+            totalFramesDisplay.textContent = totalFrames;
+            
+            updateRangeDisplay('start');
+            showStatus('success', `已加载 Episode ${episode.episode_index} 的${selectedCamera}相机视频`);
+        }
+        
+        // 滑块变化
+        rangeStartSlider.addEventListener('input', function() {
+            updateRangeDisplay('start');
+        });
+
+        rangeEndSlider.addEventListener('input', function() {
+            updateRangeDisplay('end');
+        });
+        
+        // 视频元数据加载完成
+        videoPlayer.addEventListener('loadedmetadata', function() {
+            videoLoaded = true;
+            updateRangeDisplay('start');
+        });
+        
+        // 视频加载错误
+        videoPlayer.addEventListener('error', function() {
+            videoLoaded = false;
+            showStatus('error', '视频加载失败，请检查路径是否正确');
+        });
+        
+        function getKeepRange() {
+            let start = parseInt(rangeStartSlider.value);
+            let end = parseInt(rangeEndSlider.value);
+            if (start > end) {
+                [start, end] = [end, start];
+            }
+            return { start, end };
+        }
+
+        function updateRangeDisplay(activeHandle = 'start') {
+            const { start, end } = getKeepRange();
+            const maxFrame = Math.max(1, totalFrames - 1);
+            rangeStartNumber.textContent = start;
+            rangeEndNumber.textContent = end;
+            keptFramesDisplay.textContent = Math.max(0, end - start + 1);
+            rangeSelection.style.left = `${(start / maxFrame) * 100}%`;
+            rangeSelection.style.width = `${((end - start) / maxFrame) * 100}%`;
+
+            const frame = activeHandle === 'end' ? end : start;
+            const time = frame / fps;
+            timeStampDisplay.textContent = time.toFixed(2) + 's';
+            videoPlayer.currentTime = time;
+        }
+        
+        function updateDatasetInfo(type, message) {
+            const infoDiv = document.getElementById('datasetInfo');
+            infoDiv.className = 'file-info ' + type;
+            infoDiv.textContent = message;
+        }
+        
+        function previewFrame(handle = 'start') {
+            if (!videoLoaded) {
+                showStatus('error', '请先加载视频');
+                return;
+            }
+            const { start, end } = getKeepRange();
+            const frame = handle === 'end' ? end : start;
+            videoPlayer.currentTime = frame / fps;
+            
+            const canvas = document.createElement('canvas');
+            canvas.width = videoPlayer.videoWidth;
+            canvas.height = videoPlayer.videoHeight;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(videoPlayer, 0, 0, canvas.width, canvas.height);
+            
+            const thumbnailImage = document.getElementById('thumbnailImage');
+            thumbnailImage.src = canvas.toDataURL('image/jpeg');
+            document.getElementById('previewThumbnail').style.display = 'block';
+            
+            showStatus('success', `已预览${handle === 'end' ? '终点' : '起点'}第 ${frame} 帧`);
+        }
+        
+        function truncateVideo() {
+            if (!selectedEpisode) {
+                showStatus('error', '请先选择Episode');
+                return;
+            }
+            
+            const datasetRoot = document.getElementById('datasetRoot').value;
+            const { start, end } = getKeepRange();
+            
+            if (!datasetRoot) {
+                showStatus('error', '请输入数据集根目录');
+                return;
+            }
+            
+            if (!videoLoaded) {
+                showStatus('error', '请先加载视频');
+                return;
+            }
+            
+            const requestData = {
+                dataset_root: datasetRoot,
+                episode_index: selectedEpisode.episode_index,
+                keep_start_frame: start,
+                keep_end_frame: end
+            };
+            
+            showProgress('正在启动截断处理...');
+            
+            fetch('/truncate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                hideProgress();
+                if (data.success) {
+                    let message = `✂️ 截断成功！\n`;
+                    message += `📊 Episode ${data.episode_number}: 保留 ${start} - ${end}，共 ${data.trajectory_frames} 帧\n`;
+                    message += `🎬 处理视频: ${data.successful_videos_count} 成功`;
+                    if (data.failed_videos_count > 0) {
+                        message += `, ${data.failed_videos_count} 失败`;
+                    }
+                    message += `\n💾 备份位置: ${data.backup_dir}`;
+                    
+                    if (data.processed_videos) {
+                        message += `\n\n📹 视频处理详情:\n`;
+                        for (const [camera, info] of Object.entries(data.processed_videos)) {
+                            if (info.error) {
+                                message += `❌ ${camera}: ${info.error}\n`;
+                            } else {
+                                message += `✅ ${camera}: ${info.original_frames} -> ${info.truncated_frames} 帧\n`;
+                            }
+                        }
+                    }
+                    
+                    showStatus('success', message);
+                    
+                    // 重新加载数据集以更新信息
+                    setTimeout(() => loadDataset(), 1000);
+                } else {
+                    showStatus('error', `❌ 截断失败: ${data.error}`);
+                }
+            })
+            .catch(error => {
+                hideProgress();
+                showStatus('error', `❌ 请求失败: ${error.message}`);
+            });
+        }
+
+        function undoLast() {
+            const datasetRoot = document.getElementById('datasetRoot').value;
+            if (!datasetRoot) {
+                showStatus('error', '请输入数据集根目录');
+                return;
+            }
+
+            showProgress('正在回退上一步...');
+
+            fetch('/undo', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ dataset_root: datasetRoot })
+            })
+            .then(response => response.json())
+            .then(data => {
+                hideProgress();
+                if (data.success) {
+                    showStatus('success', `↩️ 已回退上一步\n恢复来源: ${data.restored_from}\n恢复文件: ${data.restored_files}`);
+                    setTimeout(() => loadDataset(), 1000);
+                } else {
+                    showStatus('error', `❌ 回退失败: ${data.error}`);
+                }
+            })
+            .catch(error => {
+                hideProgress();
+                showStatus('error', `❌ 请求失败: ${error.message}`);
+            });
+        }
+        
+        function showStatus(type, message) {
+            const statusDiv = document.getElementById('statusMessage');
+            statusDiv.className = 'status-message ' + type;
+            statusDiv.textContent = message;
+            
+            if (type === 'success') {
+                setTimeout(() => {
+                    statusDiv.style.display = 'none';
+                }, 10000);
+            }
+        }
+        
+        function showProgress(text) {
+            const progressContainer = document.getElementById('progressContainer');
+            const progressText = document.getElementById('progressText');
+            progressContainer.classList.add('active');
+            progressText.textContent = text;
+            document.getElementById('progressFill').style.width = '0%';
+            
+            // 开始轮询状态
+            pollStatus();
+        }
+        
+        function hideProgress() {
+            const progressContainer = document.getElementById('progressContainer');
+            progressContainer.classList.remove('active');
+        }
+        
+        function pollStatus() {
+            const progressContainer = document.getElementById('progressContainer');
+            if (!progressContainer.classList.contains('active')) {
+                return;
+            }
+            
+            fetch('/status')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.is_processing) {
+                        document.getElementById('progressFill').style.width = data.progress + '%';
+                        document.getElementById('progressText').textContent = data.message;
+                        
+                        if (data.error) {
+                            hideProgress();
+                            showStatus('error', `处理出错: ${data.error}`);
+                        } else {
+                            setTimeout(pollStatus, 500);
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('状态查询失败:', error);
+                });
+        }
+        
+        // 验证数据对应关系
+        async function validateAlignment() {
+            if (!selectedEpisode) {
+                showStatus('error', '请先选择Episode');
+                return;
+            }
+            
+            const datasetRoot = document.getElementById('datasetRoot').value;
+            if (!datasetRoot) {
+                showStatus('error', '请输入数据集根目录');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/validate_alignment', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        dataset_root: datasetRoot,
+                        episode_index: selectedEpisode.episode_index
+                    })
+                });
+                
+                const data = await response.json();
+                
+                // 显示验证状态
+                const alignmentStatus = document.getElementById('alignmentStatus');
+                const validationPanel = document.getElementById('validationPanel');
+                const validationDetails = document.getElementById('validationDetails');
+                
+                validationPanel.classList.remove('hidden');
+                
+                if (data.success) {
+                    const result = data.validation_result;
+                    alignmentStatus.textContent = '✅ 验证通过';
+                    alignmentStatus.style.color = '#2e7d32';
+                    
+                    // 显示详细验证信息
+                    let detailsHtml = '';
+                    
+                    // 轨迹数据信息
+                    if (result.trajectory_info) {
+                        detailsHtml += `<div style="margin-bottom: 15px;"><strong>📊 轨迹数据:</strong><br>`;
+                        detailsHtml += `• 帧数: ${result.trajectory_info.frames}<br>`;
+                        if (result.trajectory_info.time_range) {
+                            detailsHtml += `• 时间范围: ${result.trajectory_info.time_range[0].toFixed(2)}s - ${result.trajectory_info.time_range[1].toFixed(2)}s<br>`;
+                        }
+                        detailsHtml += `• 有时间戳: ${result.trajectory_info.has_timestamp ? '是' : '否'}</div>`;
+                    }
+                    
+                    // 视频数据信息
+                    if (result.video_info) {
+                        detailsHtml += `<div style="margin-bottom: 15px;"><strong>📹 视频数据:</strong><br>`;
+                        for (const [camera, info] of Object.entries(result.video_info)) {
+                            const statusIcon = info.frames_match ? '✅' : '❌';
+                            detailsHtml += `• ${camera}: ${statusIcon} ${info.frames}帧<br>`;
+                            if (!info.frames_match) {
+                                detailsHtml += `  ⚠️ 与轨迹帧数差异: ${info.frame_difference}帧<br>`;
+                            }
+                        }
+                        detailsHtml += `</div>`;
+                    }
+                    
+                    // 对应关系检查
+                    if (result.alignment_check) {
+                        detailsHtml += `<div style="margin-bottom: 15px;"><strong>🔍 对应关系检查:</strong><br>`;
+                        detailsHtml += `• 总相机数: ${result.alignment_check.total_cameras}<br>`;
+                        detailsHtml += `• 匹配相机数: ${result.alignment_check.matching_cameras}<br>`;
+                        detailsHtml += `• 全部匹配: ${result.alignment_check.all_match ? '是' : '否'}</div>`;
+                        
+                        // 时间戳分析
+                        if (result.alignment_check.timestamp_analysis) {
+                            const ts = result.alignment_check.timestamp_analysis;
+                            detailsHtml += `<div style="margin-bottom: 15px;"><strong>⏰ 时间戳分析:</strong><br>`;
+                            detailsHtml += `• 平均间隔: ${ts.avg_interval.toFixed(4)}s<br>`;
+                            detailsHtml += `• 间隔范围: ${ts.min_interval.toFixed(4)}s - ${ts.max_interval.toFixed(4)}s<br>`;
+                            detailsHtml += `• 期望间隔: ${ts.expected_interval.toFixed(4)}s<br>`;
+                            detailsHtml += `• 一致性: ${ts.is_consistent ? '✅ 良好' : '⚠️ 异常'}</div>`;
+                        }
+                    }
+                    
+                    // 错误信息
+                    if (result.errors && result.errors.length > 0) {
+                        detailsHtml += `<div style="margin-bottom: 15px;"><strong>❌ 发现的问题:</strong><br>`;
+                        result.errors.forEach(error => {
+                            detailsHtml += `• ${error}<br>`;
+                        });
+                        detailsHtml += `</div>`;
+                    }
+                    
+                    validationDetails.innerHTML = detailsHtml;
+                    showStatus('success', `✅ 验证完成，数据对应关系正常`);
+                    
+                } else {
+                    alignmentStatus.textContent = '❌ 验证失败';
+                    alignmentStatus.style.color = '#c62828';
+                    validationDetails.innerHTML = `验证失败: ${data.error}`;
+                    showStatus('warning', `⚠️ 数据验证发现问题，但可以继续操作`);
+                }
+                
+            } catch (error) {
+                console.error('验证失败:', error);
+                showStatus('error', `❌ 验证请求失败: ${error.message}`);
+            }
+        }
+        
+        // 预览时间范围
+        function previewTimeRange() {
+            const startTime = parseFloat(document.getElementById('startTimeInput').value);
+            const endTime = parseFloat(document.getElementById('endTimeInput').value);
+            
+            if (isNaN(startTime) || isNaN(endTime)) {
+                showStatus('error', '请输入有效的时间范围');
+                return;
+            }
+            
+            if (startTime >= endTime) {
+                showStatus('error', '结束时间必须大于开始时间');
+                return;
+            }
+            
+            if (startTime < 0 || endTime < 0) {
+                showStatus('error', '时间不能为负数');
+                return;
+            }
+            
+            if (!selectedEpisode) {
+                showStatus('error', '请先选择Episode');
+                return;
+            }
+            
+            const timeDuration = endTime - startTime;
+            const estimatedFrames = Math.floor(timeDuration * fps);
+            
+            // 显示预览信息
+            const previewDiv = document.getElementById('timeRangePreview');
+            const detailsDiv = document.getElementById('timeRangeDetails');
+            
+            previewDiv.style.display = 'block';
+            
+            let previewInfo = `<strong>⏱️ 时间范围信息:</strong><br>`;
+            previewInfo += `• 开始时间: ${startTime.toFixed(2)}s<br>`;
+            previewInfo += `• 结束时间: ${endTime.toFixed(2)}s<br>`;
+            previewInfo += `• 时间跨度: ${timeDuration.toFixed(2)}s<br>`;
+            previewInfo += `• 预估帧数: ${estimatedFrames}帧<br>`;
+            previewInfo += `• Episode总时长: ${(selectedEpisode.length / fps).toFixed(2)}s<br>`;
+            
+            if (estimatedFrames > selectedEpisode.length) {
+                previewInfo += `<br>⚠️ <strong>警告:</strong> 估计帧数(${estimatedFrames})超过Episode总帧数(${selectedEpisode.length})`;
+            }
+            
+            detailsDiv.innerHTML = previewInfo;
+            
+            // 在视频中跳转到开始时间
+            if (videoLoaded) {
+                videoPlayer.currentTime = startTime;
+            }
+            
+            showStatus('success', `🔍 时间范围预览完成: ${startTime}s - ${endTime}s (${estimatedFrames}帧)`);
+        }
+        
+        // 执行截断操作
+        function executeTruncate() {
+            if (!selectedEpisode) {
+                showStatus('error', '请先选择Episode');
+                return;
+            }
+            
+            const datasetRoot = document.getElementById('datasetRoot').value;
+            if (!datasetRoot) {
+                showStatus('error', '请输入数据集根目录');
+                return;
+            }
+            
+            let requestData = {
+                dataset_root: datasetRoot,
+                episode_index: selectedEpisode.episode_index
+            };
+            
+            // 根据当前模式构建请求参数
+            if (currentTruncateMode === 'time') {
+                const startTime = parseFloat(document.getElementById('startTimeInput').value);
+                const endTime = parseFloat(document.getElementById('endTimeInput').value);
+                
+                if (isNaN(startTime) || isNaN(endTime)) {
+                    showStatus('error', '请输入有效的时间范围');
+                    return;
+                }
+                
+                if (startTime >= endTime) {
+                    showStatus('error', '结束时间必须大于开始时间');
+                    return;
+                }
+                
+                if (startTime < 0 || endTime < 0) {
+                    showStatus('error', '时间不能为负数');
+                    return;
+                }
+                
+                requestData.start_time = startTime;
+                requestData.end_time = endTime;
+                
+            } else {
+                const { start, end } = getKeepRange();
+                
+                if (!videoLoaded) {
+                    showStatus('error', '请先加载视频');
+                    return;
+                }
+                
+                requestData.keep_start_frame = start;
+                requestData.keep_end_frame = end;
+            }
+            
+            showProgress('正在执行截断处理...');
+            
+            fetch('/truncate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                hideProgress();
+                if (data.success) {
+                    let message = '';
+                    
+                    if (currentTruncateMode === 'time') {
+                        message = `⏰ 时间戳截断成功！\n`;
+                        if (data.time_range) {
+                            message += `⏱️ 时间范围: ${data.time_range[0]}s - ${data.time_range[1]}s\n`;
+                        }
+                    } else {
+                        message = `✂️ 帧数截断成功！\n`;
+                    }
+                    
+                    message += `📊 Episode ${data.episode_number}: 处理后 ${data.trajectory_frames} 帧\n`;
+                    message += `🎬 处理视频: ${data.successful_videos_count} 成功`;
+                    if (data.failed_videos_count > 0) {
+                        message += `, ${data.failed_videos_count} 失败`;
+                    }
+                    message += `\n💾 备份位置: ${data.backup_dir}`;
+                    
+                    if (data.processed_videos) {
+                        message += `\n\n📹 视频处理详情:\n`;
+                        for (const [camera, info] of Object.entries(data.processed_videos)) {
+                            if (info.error) {
+                                message += `❌ ${camera}: ${info.error}\n`;
+                            } else {
+                                message += `✅ ${camera}: ${info.original_frames} -> ${info.truncated_frames} 帧\n`;
+                            }
+                        }
+                    }
+                    
+                    showStatus('success', message);
+                    
+                    // 重新加载数据集以更新信息
+                    setTimeout(() => loadDataset(), 1000);
+                } else {
+                    showStatus('error', `❌ 截断失败: ${data.error}`);
+                }
+            })
+            .catch(error => {
+                hideProgress();
+                showStatus('error', `❌ 请求失败: ${error.message}`);
+            });
+        }
+    </script>
+</body>
+</html>
