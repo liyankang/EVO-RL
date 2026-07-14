@@ -532,20 +532,25 @@ class VideoTruncator:
             truncated_episode_data["frame_index"] = range(len(truncated_episode_data))
         if has_timestamp:
             start_timestamp = 0.0
-            truncated_episode_data["timestamp"] = [
+            # 保持timestamp字段与原始数据类型一致（通常是float32）
+            original_timestamp_dtype = episode_data["timestamp"].dtype
+            truncated_episode_data["timestamp"] = np.array([
                 start_timestamp + i * timestamp_diff for i in range(len(truncated_episode_data))
-            ]
+            ], dtype=original_timestamp_dtype)
         else:
             start_timestamp = None
 
         if episode_mask is None:
             updated_file_df = truncated_episode_data
-        else:
+        elif episode_positions is not None and len(episode_positions) > 0:
             start_pos = int(episode_positions[0])
             end_pos = int(episode_positions[-1]) + 1
             before_df = file_df.iloc[:start_pos].copy()
             after_df = file_df.iloc[end_pos:].copy()
             updated_file_df = pd.concat([before_df, truncated_episode_data, after_df], ignore_index=True)
+        else:
+            # Fallback case: should not happen if episode_mask is not None
+            updated_file_df = truncated_episode_data
 
         updated_file_df.to_parquet(target_file, index=False)
         total_frames = self._reindex_all_data_parquets()
@@ -706,3 +711,6 @@ class VideoTruncator:
             self._cleanup_prepared_videos(processed_videos)
             logger.error(f"Truncation failed: {e}")
             raise
+
+
+
