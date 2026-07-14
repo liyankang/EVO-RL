@@ -155,25 +155,6 @@ class VideoTruncator:
                 lengths[ep_idx] = int(len(df))
         return lengths
 
-    def _compute_all_episode_stats(self, info: Dict) -> Dict[int, Dict]:
-        """计算所有episode的统计信息。"""
-        if compute_episode_stats is None:
-            return {}
-
-        all_stats = {}
-        for parquet_path in self._data_parquet_files():
-            df = pd.read_parquet(parquet_path)
-            if "episode_index" in df.columns:
-                for ep_idx, group in df.groupby("episode_index", sort=False):
-                    all_stats[int(ep_idx)] = self._episode_stats_from_dataframe(group.reset_index(drop=True), info)
-            else:
-                try:
-                    ep_idx = int(parquet_path.stem.replace("episode_", ""))
-                except ValueError:
-                    continue
-                all_stats[ep_idx] = self._episode_stats_from_dataframe(df.reset_index(drop=True), info)
-        return all_stats
-
     def _strip_quantile_stats(self, stats: Any) -> Any:
         """递归移除 LeRobot 自动生成的分位数统计键，例如 q01/q10/q50。"""
         if isinstance(stats, dict):
@@ -187,20 +168,6 @@ class VideoTruncator:
             return [self._strip_quantile_stats(item) for item in stats]
         return stats
 
-    def _merge_stats_with_existing_schema(self, existing: Any, new_stats: Any) -> Any:
-        """按现有 schema 回写统计值，不新增源数据里没有的键。"""
-        if isinstance(existing, dict) and isinstance(new_stats, dict):
-            merged = {}
-            for key, existing_value in existing.items():
-                if isinstance(key, str) and _QUANTILE_KEY_PATTERN.match(key):
-                    continue
-                if key in new_stats:
-                    merged[key] = self._merge_stats_with_existing_schema(existing_value, new_stats[key])
-                else:
-                    merged[key] = existing_value
-            return merged
-        return new_stats
-
     def _write_aggregated_stats_json(self, all_episode_stats: Dict):
         """写入聚合统计信息到stats.json文件。"""
         if not all_episode_stats or aggregate_stats is None or write_stats is None:
@@ -213,54 +180,7 @@ class VideoTruncator:
         aggregated_stats = aggregate_stats(non_empty_stats)
         write_stats(aggregated_stats, self.dataset_root)
 
-    def _update_legacy_episodes_stats_jsonl(self, episode_stats: Dict, new_length: int, start_ts: Optional[float], end_ts: Optional[float]):
-        """更新旧版episodes_stats.jsonl文件。"""
-        # LeRobot 2.1 期望 episodes_stats.jsonl 使用嵌套的 stats 字段，而不是平铺 stats/... 键。
-        episodes_stats_jsonl_path = self.meta_dir / "episodes_stats.jsonl"
-        if not episodes_stats_jsonl_path.exists():
-            return
-
-        rows = _read_jsonl(episodes_stats_jsonl_path)
-        updated = False
-        for row in rows:
-            if row.get("episode_index") != self.episode_index:
-                continue
-
-            # 清理旧的平铺格式键
-            for key in list(row.keys()):
-                if key.startswith("stats/"):
-                    row.pop(key)
-
-            # 更新统计信息 - 只包含非视频数据的统计
-            # 视频数据在 episodes_stats.jsonl 中不应该出现统计信息
-            clean_stats = {}
-            for key, value in episode_stats.items():
-                # 排除视频/图像特征的统计信息，因为它们的计数可能与轨迹数据不一致
-                if not any(video_key in key for video_key in ['observation.images', 'observation.video']):
-                    clean_stats[key] = value
-
-            clean_stats = self._strip_quantile_stats(clean_stats)
-            if "stats" in row and isinstance(row["stats"], dict):
-                row["stats"] = _serialize_stats_tree(
-                    self._merge_stats_with_existing_schema(row["stats"], clean_stats)
-                )
-            elif "stats" in row:
-                row["stats"] = _serialize_stats_tree(clean_stats)
-            if "length" in row:
-                row["length"] = new_length
-            if "num_frames" in row:
-                row["num_frames"] = new_length
-            if start_ts is not None and "start_timestamp" in row:
-                row["start_timestamp"] = start_ts
-            if end_ts is not None and "end_timestamp" in row:
-                row["end_timestamp"] = end_ts
-            updated = True
-            break
-
-        if updated:
-            _write_jsonl(episodes_stats_jsonl_path, rows)
-
-    def _update_episode_metadata_parquet(self, subdir: str, episode_index: int, new_length: int, start_ts: Optional[float], end_ts: Optional[float], flat_stats: Dict):
+    def _update_episode_metadata_parquet(self, subdir: str, episode_index: int, new_length: int, start_ts: Optional[float], end_ts: Optional[float]):
         """更新episode元数据parquet文件。"""
         for parquet_path in self._metadata_parquet_files(subdir):
             df = pd.read_parquet(parquet_path)
@@ -279,11 +199,6 @@ class VideoTruncator:
                 df.loc[mask, "start_timestamp"] = start_ts
             if end_ts is not None and "end_timestamp" in df.columns:
                 df.loc[mask, "end_timestamp"] = end_ts
-
-            for key, value in flat_stats.items():
-                if key not in df.columns:
-                    continue
-                df.loc[mask, key] = [value] * int(mask.sum())
 
             df.to_parquet(parquet_path, index=False)
 
@@ -687,21 +602,10 @@ class VideoTruncator:
             if updated:
                 _write_jsonl(episodes_jsonl_path, rows)
 
-        all_episode_stats = self._compute_all_episode_stats(info)
-        episode_stats = all_episode_stats.get(self.episode_index, truncate_result.get("episode_stats", {}))
-        episode_stats = self._strip_quantile_stats(episode_stats)
-        flat_stats = {
-            key: value
-            for key, value in _flatten_dict({"stats": episode_stats}).items()
-            if not any(_QUANTILE_KEY_PATTERN.match(part) for part in key.split("/"))
-        }
-        self._update_legacy_episodes_stats_jsonl(episode_stats, new_length, start_ts, end_ts)
-        self._update_episode_metadata_parquet("episodes", self.episode_index, new_length, start_ts, end_ts, flat_stats)
-        self._update_episode_metadata_parquet(
-            "episodes_stats", self.episode_index, new_length, start_ts, end_ts, flat_stats
-        )
+        self._update_episode_metadata_parquet("episodes", self.episode_index, new_length, start_ts, end_ts)
+        self._update_episode_metadata_parquet("episodes_stats", self.episode_index, new_length, start_ts, end_ts)
 
-        # 保持源数据 schema，不在裁剪后重写 v3 聚合 stats.json。
+        # 保持源数据 schema 与数值类型，不在裁剪后重写 legacy/v3 stats。
 
     def truncate(self, validate_alignment: bool = True) -> Dict[str, Any]:
         """执行截断操作的主函数。"""
